@@ -1,0 +1,267 @@
+.layer#blurred
+include ../popup/formAlert1
+include ../popup/formAlert2
+include ../popup/formAlert3
+include ../popup/formAlert4
+include ../popup/formAlert5
+include ../popup/serverDisabled
+include ../popup/roomUpdateFail
+include ../popup/roomDropFail
+include ../popup/roomDropConfirm
+
+// 읽기 모드
+.read-view
+  .room-info-cell
+    label.primary 채팅방 이름
+    label.auxiliary #{title}
+
+  .room-info-cell
+    label.primary 방장
+    label.auxiliary #{owner}
+  
+  - var secretMsg = secret ? '비공개 채팅방' : '공개 채팅방'
+  .room-info-cell
+    label.primary 공개여부
+    label.auxiliary #{secretMsg}
+
+  .room-info-cell
+    label.primary(for='secretKey') 비밀번호
+    label.auxiliary(for='secretKey') #{secretKey}
+
+  .room-info-cell
+    label.primary 참여인원
+    label.auxiliary #{participants.length} / #{capacity} 명
+    a.go-button
+
+  .end-line
+
+  .button-group
+    a.ok 수정하기
+
+
+// 쓰기 모드
+.modify-view
+  .room-info-cell
+    label.primary 채팅방 이름
+    input.input-box(id='title', type='text', name='title', value='#{title}')
+
+  .room-info-cell
+    label.primary 방장
+    label.auxiliary(for='owner') #{owner}
+    
+  - var secretMsg = secret ? '비공개합니다' : '공개합니다'
+  .room-info-cell
+    label.primary 공개여부
+    label.auxiliary(id='secretToggleMsg') #{secretMsg}
+    img.input-toggle-img(id='secretToggle')
+    input.input-img-value(id='secret', type='hidden', name='secret', value='false')
+  
+  .room-info-cell(id='room-cell-secret-key')
+    label.primary(for='secretKey') 비밀번호
+    input.input-box(id='secretKey', type='text', name='secretKey', value='#{secretKey}')
+
+  .room-info-cell
+    label.primary 인원 제한
+    input.input-box(id='capacity', type='number', name='capacity', value='#{capacity}')
+  
+  .room-info-cell
+    label.primary 채팅방 삭제
+    label.emphasis 채팅방 삭제하기
+
+  .end-line
+
+  .button-group
+    a.cancel 취소
+    a.ok 완료
+  
+  
+  
+// Layout Control.
+script.
+  $('.modify-view').css('display', 'none');
+  $('.read-view').css('display', 'block');
+  
+  if( '#{owner}' !== '#{user.name}' ) {
+    $('.read-view a.ok').css('display', 'none');
+  }
+  
+  var secret = #{secret};
+  if( !secret ) {
+    $('#room-cell-secret-key').css('display', 'none');
+    // $('#secretToggle').attr('src', '/images/03_setting_select_O.png');
+    $('#secretToggle').attr('class', 'input-toggle-img-public');
+  }
+  else {
+    // $('#secretToggle').attr('src', '/images/03_setting_select_X.png');
+    $('#secretToggle').attr('class', 'input-toggle-img-secret');
+  }
+  
+
+// Utilities
+script.
+  function modifyRoom() {
+    // secretKey regExp
+    var regx = /^[A-Za-z0-9]+$/;
+    
+    // validations
+    if($.trim($('#title').val()) === '' ||  $.trim($('#capacity').val()) === '') {
+      // 그룹명과 인원제한을 지정해주세요.
+      $('#blurred').css('display', 'block');
+      $('#form-alert-1').css('display', 'block');
+    }
+    else if( $('#title').val().length > 10 ) {
+      // 그룹명은 10자이내로 작성해주세요.
+      $('#blurred').css('display', 'block');
+      $('#form-alert-2').css('display', 'block');
+    }
+    else if( !isPositiveInteger($('#capacity').val()) ) {
+      // 잘못된 형식입니다. 참여인원은 최소 2명, 최대 50명까지의 자연수로 지정해주세요.
+      $('#blurred').css('display', 'block');
+      $('#form-alert-3').css('display', 'block');
+    }
+    else if($('#capacity').val() > 50 || $('#capacity').val() < 2) {
+      // 참여인원은 최소 2명, 최대 50명까지 설정가능합니다.
+      $('#blurred').css('display', 'block');
+      $('#form-alert-4').css('display', 'block');
+    }
+    else if($('#secret').attr('value') === 'true' && !regx.test($('#secretKey').val())) {
+      // 비밀번호는 알파벳과 숫자의 조합으로만 쓸 수 있습니다.
+      $('#blurred').css('display', 'block');
+      $('#form-alert-5').css('display', 'block');
+    }
+    else {
+      var roomdata = {
+        rid: '#{rid}',
+        title: $('#title').val(),
+        capacity: $('#capacity').val(),
+        secret: $('#secret').val(),
+        secretKey: $('#secret').val() === 'true' ? $('#secretKey').val() || '' : '',
+      }
+      
+      $.ajax({
+        type: 'PUT',
+        url: '/room/' + '#{rid}',
+        data: roomdata,
+        success: function(result) {
+          if(result.success) {
+            socket.emit('updateRoom', JSON.stringify(roomdata));
+            
+            $('.modify-view').css('display', 'none');
+            $('.read-view').css('display', 'block');
+          }
+          else {
+            // 방정보 업데이트에 실패했습니다.
+            $('#blurred').css('display', 'block');
+            $('#room-update-fail-alert').css('display', 'block');
+          }
+        },
+        error: function(result) {
+          // 서버가 일시적으로 동작하지 않습니다.
+          $('#blurred').css('display', 'block');
+          $('#server-disabled').css('display', 'block');
+        }
+      });
+    }
+  }
+  
+  function dropRoom() {
+    var data = {
+      type: 'drop',
+      rid: '#{rid}'
+    };
+
+    $.ajax({
+      type: 'DELETE',
+      url: '/room/' + '#{rid}',
+      data: data,
+      success: function(result) {
+        if(result.success) {
+          socket.emit('updateRoom', JSON.stringify(data));
+          
+          $('.modify-view').css('display', 'none');
+          $('.read-view').css('display', 'block');
+        }
+        else {
+          // 그룹 삭제에 실패했습니다.
+          $('#blurred').css('display', 'block');
+          $('#room-drop-fail-alert').css('display', 'block');
+        }
+      },
+      error: function(result) {
+        // 서버가 일시적으로 동작하지 않습니다.
+        $('#blurred').css('display', 'block');
+        $('#server-disabled').css('display', 'block');
+      }
+    });
+  }
+  
+  function isPositiveInteger(val) {
+    return val == '0' || ((val | 0) > 0 && val % 1 == 0);
+  }
+  
+  
+  
+
+// Toggle Control.
+script.
+  $('#secretToggle').click(function() {
+    var secret = $('input.input-img-value').val();
+    if( secret === 'true' ) {
+      // $('#secretToggle').attr('src', '/images/03_setting_select_O.png');
+      $('#secretToggle').attr('class', 'input-toggle-img-public');
+      $('#secretToggleMsg').html('공개합니다');
+      $('#room-cell-secret-key').css('display', 'none');
+      $('.room-info-cell > input.input-img-value').val('false');
+    }
+    else {
+      // $('#secretToggle').attr('src', '/images/03_setting_select_X.png');
+      $('#secretToggle').attr('class', 'input-toggle-img-secret');
+      $('#secretToggleMsg').html('비공개합니다');
+      $('#room-cell-secret-key').css('display', 'block');
+      $('.room-info-cell > input.input-img-value').val('true');
+    }
+  });
+  
+  
+// Click Event Listeners.
+script.
+  //-------- read view
+  $('.read-view a.go-button').click(function() { render('participants') });
+  $('.read-view > .button-group > a.ok').click(function() {
+    $('.read-view').css('display', 'none');
+    $('.modify-view').css('display', 'block');
+  });
+  
+  //-------- modify view
+  $('.modify-view > .button-group > a.ok').click( modifyRoom );
+  $('.modify-view > .button-group > a.cancel').click(function() {
+    $('.modify-view').css('display', 'none');
+    $('.read-view').css('display', 'block');
+  });
+  $('.modify-view label.emphasis').click(function() {
+    $('#blurred').css('display', 'block');
+    $('#room-drop-confirm').css('display', 'block');
+  });
+  
+  //-------- Dialogs
+  $('.funichat-alert a.ok').click(function() {
+    $('#blurred').css('display', 'none');
+    $('#form-alert-1').css('display', 'none');
+    $('#form-alert-2').css('display', 'none');
+    $('#form-alert-3').css('display', 'none');
+    $('#form-alert-4').css('display', 'none');
+    $('#form-alert-5').css('display', 'none');
+    $('#server-disabled').css('display', 'none');
+    $('#room-drop-fail-alert').css('display', 'none');
+    $('#room-update-fail-alert').css('display', 'none');
+  });
+  $('.funichat-confirm a.cancel').click(function() {
+    $('#blurred').css('display', 'none');
+    $('#room-drop-confirm').css('display', 'none');
+  });
+  
+  $('#room-drop-confirm a.ok').click(function() {
+    $('#blurred').css('display', 'none');
+    $('#room-drop-confirm').css('display', 'none');
+    dropRoom();
+  });

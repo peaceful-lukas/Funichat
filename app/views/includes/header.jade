@@ -1,0 +1,36 @@
+header
+  .title-bar
+    a.back-button
+    img.logo
+    a.return-button
+
+  .nav-bar
+    
+    
+    - if ( page === 'lobby' ) {
+      img.nav-thumb#plus-icon
+      p.nav-title 채팅방 만들기
+      
+      script.
+        $('a.back-button').css('display', 'none');
+
+      script.
+        $('p.nav-title').click(function() {
+          window.location.replace('/room/form');
+        });
+    - }
+    
+    - else if ( page === 'form' ) {
+      p.nav-title 채팅방 생성
+
+      script.
+        $('a.back-button').click(function() {
+          window.location.replace('/lobby');
+        });
+    - }
+
+    - else if( page === 'room' ) {
+      img.nav-thumb
+      p.nav-title
+      p.nav-extra
+    - }

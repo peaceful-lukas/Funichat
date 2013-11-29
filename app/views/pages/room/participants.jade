@@ -1,0 +1,7 @@
+ul.participants-list
+  - participants.forEach(function(userInfo) {
+    li(class='#{userInfo.name}')
+      img.user-img(src='#{userInfo.profileImageUrl}')
+      p.user-name #{userInfo.name}
+    .end-line
+  - })

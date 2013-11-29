@@ -1,0 +1,22 @@
+span.thumbnail
+  img.room-cell-thumbnail-bg
+  img.room-cell-thumbnail(src='#{room.thumbnail}')
+
+span.desc
+  h3.room-cell-title #{room.title}
+  h6.room-cell-participant-info #{room.participants.length} / #{room.capacity} 참여중
+
+- if( room.secret ) {
+  span.status(value='secret')
+    img.room-cell-status-secret
+- }
+- else if( room.participants.length < room.capacity ) {
+  span.status(value='available')
+    img.room-cell-status-available
+- }
+- else {
+  span.status(value='full')
+    img.room-cell-status-full
+- }
+
+.end-line

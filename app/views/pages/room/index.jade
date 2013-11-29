@@ -1,0 +1,322 @@
+extends ../../layouts/mobile
+
+block content
+  .layer#chat
+  .layer#info
+  .layer#participants
+  
+  #page-loader
+    img
+    p 크롬을 사용하시면 최적화된<br>서비스를 이용하실 수 있습니다.
+  
+  .layer#blurred
+  include ../popup/roomDropAlert
+  include ../popup/ownerAlert
+  
+  .participant-list-item
+    li
+      img.user-img
+      p.user-name
+    .end-line
+  
+  script.
+    $('.participant-list-item').css('display', 'none');
+  
+  // import socket.io
+  script(text='text/javascript', src='/socket.io/socket.io.js')
+
+  // global variables.
+  script.
+    var socket = null;
+    var userData = {
+      gid: '#{user.gid}',
+      rid: '#{room._id}',
+      name: '#{user.name}',
+      profileImageUrl: '#{user.profileImageUrl}'
+    };
+    
+    // temporary variables
+    var isChatRendered = false;
+    var isInfoRendered = false;
+    var isParticipantsRendered = false;
+    
+    var pageType = null;
+    var roomTitle = '#{room.title}';
+    var roomParticipantsCount = '#{room.participants.length}';
+
+
+
+  // global functions.
+  script.
+    function render(viewname) {
+      
+      pageType = viewname;
+      
+      // 채팅방 메인
+      if( viewname === 'chat' ) {
+        // change page view
+        $('#info').css('display', 'none');
+        $('#participants').css('display', 'none');
+        $('#chat').css('display', 'block');
+        
+        // change header Content
+        $('img.nav-thumb').css('display', 'inline-block');
+        $('img.nav-thumb').attr('src', '#{room.thumbnail}');
+        $('p.nav-title').css('display', 'inline-block');
+        $('p.nav-title').html( roomTitle );
+        $('p.nav-extra').css('display', 'inline-block');
+        $('p.nav-extra').html( roomParticipantsCount + ' / ' + '#{room.capacity}' + ' > ' );
+        $('p.nav-extra').click(function() { render('info'); });
+        
+        // back button event listener
+        $('a.back-button').unbind('click');
+        $('a.back-button').click(function() { window.location.replace('/lobby'); });
+        
+        if( !isChatRendered ) {
+          var url = '/room/' + '#{room._id}' + '/chat';
+          $('#chat').load(url, function() {
+            // 웹소켓 연결.
+            if( socket === null || !socket.socket.connected ) {
+              socket = io.connect();
+              registerSocketListeners();
+              socket.emit('join', JSON.stringify(userData));
+              isChatRendered = true;
+            }
+            
+            $('#page-loader').css('display', 'inline-block');
+            $('#message-input').css('display', 'none');
+            $('a.prev-messages').css('display', 'none');
+          }); 
+        }
+      }
+      
+      // 채팅방 정보
+      else if( viewname === 'info' ) {
+        // change page view
+        $('#chat').css('display', 'none');
+        $('#participants').css('display', 'none');
+        $('#info').css('display', 'block');
+        
+        // back button event listener
+        $('a.back-button').unbind('click');
+        $('a.back-button').click(function() { render('chat') });
+        
+        // change header Content
+        $('img.nav-thumb').css('display', 'none');
+        $('p.nav-title').css('display', 'inline-block');
+        $('p.nav-title').html('채팅방 정보');
+        $('p.nav-extra').css('display', 'none');
+        
+        if( !isInfoRendered ) {
+          var url = '/room/' + '#{room._id}' + '/info';
+          $('#info').load(url, function() {
+            isInfoRendered = true;
+          });
+        }
+      }
+      
+      // 채팅방 참가자
+      else if( viewname === 'participants' ) {
+        // hide.
+        $('#info').css('display', 'none');
+        
+        // show.
+        $('#participants').css('display', 'block');
+        
+        // back button event listener
+        $('a.back-button').unbind('click');
+        $('a.back-button').click(function() { render('info') });
+        
+        // Header Content
+        $('p.nav-title').css('display', 'inline-block');
+        $('p.nav-title').html('채팅방 참가자 리스트');
+        
+        if( !isParticipantsRendered ) {
+          var url = '/room/' + '#{room._id}' + '/participants';
+          $('#participants').load(url, function() {
+            isParticipantsRendered = true;
+          });
+        }
+      }
+    }
+    
+    function registerSocketListeners() {
+      socket.on('connect', function() {
+        $('#page-loader').css({display: 'none' });
+        $('a.prev-messages').css('display', 'block');
+        $('#message-input').css('display', 'block');
+      });
+      
+      socket.on('disconnect', function() {
+        $('a.prev-messages').css('display', 'none');
+        $('#message-input').css('display', 'none');
+        $('#page-loader').css({display: 'inline-block' });
+      });
+      
+      socket.on('message', function(data) {
+        var message = JSON.parse(data);
+        renderMessage(message, 'normal');
+      });
+      
+      socket.on('entrance', function(data) {
+        var entrance = JSON.parse(data);
+        applyEntrance(entrance);
+      });
+      
+      socket.on('updateRoom', function(data) {
+        var update = JSON.parse(data);
+        applyRoomUpdate(update);
+      });
+      
+      socket.on('prevMessages', function(data) {
+        var messages = JSON.parse(data);
+        
+        if(messages.length > 0) {
+          messages.forEach(function(message) {
+            renderMessage(message, 'prev');
+          });
+        }
+        else {
+          $('a.prev-messages').unbind('click');
+          $('a.prev-messages').css('opacity', 0.3);
+        }
+        
+        $('#page-loader').css({display: 'none' });
+      });
+    }
+    
+    function renderMessage(message, type) {
+      $.ajax({
+        url: '/message',
+        type: 'POST',
+        data: message,
+        success: function(view) {
+          var msgView = document.createElement('li');
+          msgView.className = '#{user.name}' === message.from ? 'message-box-mine' : 'message-box-others';
+          msgView.innerHTML = view;
+          
+          if(type === 'normal') { $('ul.message-list').prepend(msgView); }
+          else if(type === 'prev') { $('ul.message-list').append(msgView); }
+        },
+        async: false
+      });
+    }
+    
+    function applyEntrance(entrance) {
+      roomParticipantsCount = entrance.count;
+      
+      //---------------- 채팅방 페이지
+      // 헤더정보 수정
+      var participantsInfo = entrance.count + ' / ' + entrance.capacity;
+      $('.nav-bar > p.nav-extra').html(participantsInfo + ' >');
+      
+      // 채팅 화면에 출입 메세지 출력
+      var msg = '';
+      msg += entrance.name + '님께서 ';
+      msg += entrance.type === 'join' ? '입장하셨습니다.' : '퇴장하셨습니다.';
+      
+      var entranceView = document.createElement('p');
+      entranceView.className = 'alert';
+      entranceView.innerHTML = msg;
+      
+      $('ul.message-list').prepend(entranceView);
+      
+      
+      //---------------- 채팅방 정보 페이지
+      $('#info > .read-view > .room-info-cell:eq(4) > label.auxiliary').html(participantsInfo + ' 명');
+      
+      
+      //---------------- 참가자 리스트 페이지
+      if( entrance.type === 'join' ) {
+        var participantCell = $('.participant-list-item').clone();
+        participantCell.children().first().attr('class', entrance.name);
+        participantCell.children().first().children().first().attr('src', entrance.profileImageUrl);
+        participantCell.children().first().children().last().html(entrance.name);
+        $('#participants > ul.participants-list').append(participantCell.html());
+      }
+      else if( entrance.type === 'exit' ) {
+        var sel = '#participants > ul.participants-list li.' + entrance.name;
+        $(sel).next().remove(); // end-line
+        $(sel).remove(); // cell
+      }
+    }
+    
+    function applyRoomUpdate(update) {
+      roomTitle = update.title;
+      var participantsInfo = roomParticipantsCount + ' / ' + update.capacity;
+        
+      // 방장교체
+      if( update.owner ) {
+        $('#info > .read-view > .room-info-cell:eq(1) > label.auxiliary').html(update.owner);
+        $('#info > .modify-view > .room-info-cell:eq(1) > label.auxiliary').html(update.owner);
+        
+        // New Owner Alert
+        if( update.owner === '#{user.name}' ) {
+          $('#blurred').css('display', 'block');
+          $('#owner-alert').css('display', 'block');
+          $('.read-view a.ok').css('display', 'inline-block');
+          
+          // popup confirm event listener.
+          $('#owner-alert a.ok').click(function() {
+            $('#blurred').css('display', 'none');
+            $('#owner-alert').css('display', 'none');
+          });
+        }
+      }
+      
+      // 채팅방 삭제
+      else if( update.type === 'drop' ) {
+        $('#blurred').css('display', 'block');
+        $('#room-drop-alert').css('display', 'block');
+        
+        // room drop alert event confirm.
+        $('#room-drop-alert a.ok').click(function() {
+          $('#blurred').css('display', 'none');
+          $('#room-drop-alert').css('display', 'none');
+          window.location.replace('/lobby');
+        });
+      }
+      
+      // 채팅방 정보 업데이트
+      else {
+        // 채팅 화면에 업데이트 메세지 출력
+        var updateView = document.createElement('p');
+        updateView.className = 'alert';
+        updateView.innerHTML = '방 정보가 수정되었습니다.';
+        $('ul.message-list').prepend(updateView);
+        
+        // CHAT page
+        if( pageType === 'chat' ) {
+          $('p.nav-title').html( roomTitle );
+          $('.nav-bar > p.nav-extra').html(participantsInfo + ' >');
+        }
+        
+        // INFO page
+        var secretMsg = update.secret === 'true' ? '비공개' : '공개';
+        var secretImg = update.secret ? '/images/03_setting_select_X.png' : '/images/03_setting_select_O.png';
+        $('#info > .read-view > .room-info-cell:eq(0) > label.auxiliary').html(update.title);
+        $('#info > .modify-view > .room-info-cell:eq(0) > input.input-box').val(update.title);
+        $('#info > .read-view > .room-info-cell:eq(1) > label.auxiliary').html(update.owner);
+        $('#info > .modify-view > .room-info-cell:eq(1) > label.auxiliary').html(update.owner);
+        $('#info > .read-view > .room-info-cell:eq(2) > label.auxiliary').html(secretMsg + ' 채팅방');
+        $('#info > .modify-view > .room-info-cell:eq(2) > label.auxiliary').html(secretMsg + '합니다');
+        $('#info > .modify-view > .room-info-cell:eq(2) > img.input-toggle-img').attr('src', secretImg);
+        $('#info > .modify-view > .room-info-cell:eq(2) > input.input-img-value').val(update.secret);
+        $('#info > .read-view > .room-info-cell:eq(3) > label.auxiliary').html(update.secretKey);
+        $('#info > .modify-view > .room-info-cell:eq(3) > input.input-box').val(update.secretKey);
+        $('#info > .read-view > .room-info-cell:eq(4) > label.auxiliary').html(participantsInfo + ' 명');
+        $('#info > .modify-view > .room-info-cell:eq(4) > input.input-box').val(update.capacity);
+        if( update.secret ) {
+          $('#info > .modify-view > .room-info-cell:eq(3)').css('display', 'block');
+        }
+        else {
+          $('#info > .modify-view > .room-info-cell:eq(3)').css('display', 'none');
+        }
+      }
+    }
+  
+  
+  // main script.
+  script.
+    render('chat');
+  

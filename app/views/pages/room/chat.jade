@@ -1,0 +1,65 @@
+#message-input
+  input.message-input-box(type='text')
+  a.message-send-button 전송
+  
+#chat-screen
+ ul.message-list
+ 
+a.prev-messages 기존 대화목록 가져오기
+
+
+// CSS Control
+script.
+  var messageInputBoxWidth = $('#message-input').width() - 110;
+  $('input.message-input-box').width(messageInputBoxWidth);
+  
+  
+// Utilities
+script.
+  function sendMessage() {
+    var message = $('#message-input > input.message-input-box').val();
+    if( message.length > 0 ) {
+      var data = {
+        gid: '#{user.gid}',
+        rid: '#{rid}',
+        from: '#{user.name}',
+        profileImg: '#{user.profileImageUrl}',
+        content: message
+      };
+      
+      if( socket.socket.connected ) {
+        socket.send(JSON.stringify(data));
+        $('#message-input > input.message-input-box').val('');
+      }
+      else {
+        alert('메세지 전송에 실패했습니다.');
+      }
+    }
+  }
+  
+  
+script.  
+  // 메세지 전송 함수 등록
+  $('a.message-send-button').click( sendMessage );
+  $('input.message-input-box').on('keypress', function(e) {
+    if( e.keyCode === 13 ) {
+      sendMessage();
+    }
+  });
+  
+  // // 채팅창 인풋 포커스 유지.
+  // $('input.message-input-box').bind('focusout', function(e) {
+  //   e.preventDefault();
+  //   $(this).focus();
+  // });
+  
+  
+  // 이전 메세지 기록 요청
+  $('a.prev-messages').click(function() {
+    var target = $('ul.message-list > li:last > div.message-container > .content > p:eq(1)').attr('value');
+    
+    var data = {};
+    data.target = target;
+    socket.emit('prevMessages', JSON.stringify(data));
+    $('#page-loader').css({display: 'inline-block' });
+  });

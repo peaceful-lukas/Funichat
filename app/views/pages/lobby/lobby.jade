@@ -1,0 +1,88 @@
+extends ../../layouts/mobile
+
+block content
+  .layer#lobby
+
+  - rooms.forEach(function(room) {
+    .room-cell(rid=room._id)
+      include roomcell
+  - })
+  
+  .layer#blurred
+  include ../popup/fullAlert
+  include ../popup/inputSecret
+  include ../popup/wrongPassword
+  include ../popup/serverDisabled
+  
+  
+  
+  script.
+    function passwordCheck() {
+      $('#blurred').css('display', 'none');
+      $('#input-secret').css('display', 'none');
+      
+      var data = { 
+        rid: _rid,
+        secretKey: $('#secret-room-password').val()
+      };
+      
+      // check correct password.
+      $.ajax({
+        type: 'POST',
+        url: '/secretRoom',
+        data: data,
+        success: function(data) {
+          if( data.success ) {
+            var url = '/room/' + _rid;
+            window.location.replace(url)
+          }
+          else {
+            $('#blurred').css('display', 'block');
+            $('#wrong-password').css('display', 'block');
+          }
+        },
+        error: function(data) {
+          $('#blurred').css('display', 'block');
+          $('#server-disabled').css('display', 'block');
+        }
+      });
+    }
+  
+  
+  script.
+    var _rid = null;
+    
+    $('.room-cell').click(function() {
+      var index = $('.room-cell').index(this);
+      var roomStatusSel = '.room-cell:eq(' + index + ') > span.status';
+      var roomStatus = $(roomStatusSel).attr('value');
+      
+      var ridSel = '.room-cell:eq(' + index + ')';
+      _rid = $(ridSel).attr('rid');
+      
+      if(roomStatus === 'available') {
+        var url = '/room/' + _rid;
+        window.location.replace(url);
+      }
+      else if(roomStatus === 'full') {
+        $('#blurred').css('display', 'block');
+        $('#full-alert').css('display', 'block');
+      }
+      else if(roomStatus === 'secret') {
+        $('#blurred').css('display', 'block');
+        $('#input-secret').css('display', 'block');
+      }
+    });
+    
+    $('#input-secret a.ok').click( passwordCheck );
+    $('#input-secret a.cancel').click(function() {
+      $('#blurred').css('display', 'none');
+      $('#input-secret').css('display', 'none');
+    });
+    
+    $('.funichat-alert a.ok').click(function() {
+      $('#blurred').css('display', 'none');
+      $('#full-alert').css('display', 'none');
+      $('#wrong-password').css('display', 'none');
+      $('#server-disabled').css('display', 'none');
+    });

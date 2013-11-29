@@ -1,0 +1,21 @@
+{
+  "name": "Funi-Chat",
+  "description": "Mobile web chat service",
+  "version": "0.0.1",
+  "author": "Taewoo Lukas Kim <peaceful.lukas@gmail.com>",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+
+  "dependencies": {
+    "express": "latest",
+    "jade": "latest",
+    "mongoose": "latest",
+    "socket.io": "latest",
+    "amqp": "latest",
+    "connect-mongo": "latest",
+    "log4js": "latest",
+    "source-map": "latest"
+  }
+}

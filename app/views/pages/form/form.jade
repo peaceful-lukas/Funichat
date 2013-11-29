@@ -1,0 +1,132 @@
+extends ../../layouts/mobile
+
+block content
+  .layer#form
+  
+    .layer#blurred
+    include ../popup/formAlert1
+    include ../popup/formAlert2
+    include ../popup/formAlert3
+    include ../popup/formAlert4
+    include ../popup/formAlert5
+
+    form
+      .room-info-cell
+        label.primary(for='title') 채팅방 이름
+        label.auxiliary(for='title') (10자 이하)
+        input.input-box(id='title', type='text', name='title', placeholder='채팅방 이름을 설정해주세요.')
+
+      .room-info-cell
+        label.primary(for='capacity') 인원 제한
+        label.auxiliary(for='capacity') (50명 이내)
+        input.input-box(id='capacity', type='number', name='capacity', pattern='[0-9]*', value='20')
+
+      .room-info-cell
+        label.primary(for='secret') 공개여부
+        label.auxiliary(id='secretToggleMsg') 공개합니다
+        img.input-toggle-img-public(id='secretToggle')
+        input.input-img-value(id='secret', type='hidden', name='secret', value='false')
+
+      .room-info-cell(id='room-cell-secret-key')
+        label.primary(for='secretKeyField') 비밀번호
+        input.input-box(id='secretKey', type='text', name='secretKey', placeholder='비밀번호를 입력해주세요.')
+      
+      input.hidden-gid(type='hidden', name='gid', value='#{user.gid}')
+
+      .end-line
+
+      .room-info-cell
+        a.ok 방만들기
+
+
+  // CSS control.
+  script.
+    $('#secretToggle').attr('class', 'input-toggle-img-public');
+    $('#room-cell-secret-key').css('display', 'none');
+    
+    var inputBoxWidth = $('.room-info-cell').width() - 200;
+    $('.room-info-cell > input.input-box').width( inputBoxWidth );
+  
+  // Toggle Control.
+  script.
+    $('#secretToggle').click(function() {
+      var secret = $('input.input-img-value').val();
+      if( secret === 'true' ) {
+        $('#secretToggle').attr('class', 'input-toggle-img-public');
+        $('#secretToggleMsg').html('공개합니다');
+        $('#room-cell-secret-key').css('display', 'none');
+        $('.room-info-cell > input.input-img-value').val('false');
+      }
+      else {
+        $('#secretToggle').attr('class', 'input-toggle-img-secret');
+        $('#secretToggleMsg').html('비공개합니다');
+        $('#room-cell-secret-key').css('display', 'block');
+        $('.room-info-cell > input.input-img-value').val('true'); 
+      }
+    });
+    
+  
+  // OK Button
+  script.
+    $('.room-info-cell > a.ok').click(function() {
+      // secretKey regExp
+      var regx = /^[A-Za-z0-9]+$/;
+      
+      // validations
+      if($.trim($('#title').val()) === '' ||  $.trim($('#capacity').val()) === '') {
+        // 그룹명과 인원제한을 지정해주세요.
+        $('#blurred').css('display', 'block');
+        $('#form-alert-1').css('display', 'block');
+      }
+      else if( $('#title').val().length > 10 ) {
+        // 그룹명은 10자이내로 작성해주세요.
+        $('#blurred').css('display', 'block');
+        $('#form-alert-2').css('display', 'block');
+      }
+      else if( !isPositiveInteger($('#capacity').val()) ) {
+        // 잘못된 형식입니다. 참여인원은 최소 2명, 최대 50명까지의 자연수로 지정해주세요.
+        $('#blurred').css('display', 'block');
+        $('#form-alert-3').css('display', 'block');
+      }
+      else if($('#capacity').val() > 50 || $('#capacity').val() < 2) {
+        // 참여인원은 최소 2명, 최대 50명까지 설정가능합니다.
+        $('#blurred').css('display', 'block');
+        $('#form-alert-4').css('display', 'block');
+      }
+      else if($('#secret').attr('value') === 'true' && !regx.test($('#secretKey').val())) {
+        // 비밀번호는 알파벳과 숫자의 조합으로만 쓸 수 있습니다.
+        $('#blurred').css('display', 'block');
+        $('#form-alert-5').css('display', 'block');
+      }
+      else {
+        var roomdata = {
+          gid: $('input.hidden-gid').val(),
+          title: $('#title').val(),
+          capacity: $('#capacity').val(),
+          secret: $('.room-info-cell > input.input-img-value').val(),
+          secretKey: $('#secretKey').val() || '',
+        }
+        
+        $.post('/room', roomdata, function(data) {
+          var url = '/room/' + data.rid;
+          window.location.replace(url);
+        });
+      }
+    });
+    
+    function isPositiveInteger(val) {
+      return val == '0' || ((val | 0) > 0 && val % 1 == 0);
+    }
+    
+    
+    
+  // Dialog Button Listener.
+  script.
+    $('.funichat-alert > a.ok').click(function() {
+      $('#blurred').css('display', 'none');
+      $('#form-alert-1').css('display', 'none');
+      $('#form-alert-2').css('display', 'none');
+      $('#form-alert-3').css('display', 'none');
+      $('#form-alert-4').css('display', 'none');
+      $('#form-alert-5').css('display', 'none');
+    });
