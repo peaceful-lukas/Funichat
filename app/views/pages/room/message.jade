@@ -2,24 +2,15 @@
   - if ( from !== user.name ) {
     .profile
       img.user-img(src='#{profileImg}')
-      p.user-name #{user.name}
+      p.user-name #{from}
   - }
   
   .content
-    p.message(value='#{_id}') #{content}
+    - if( content.type === 'text' ) {
+      p.message(value='#{_id}') #{content.message}
+    - }
+    - else if( content.type === 'image' ) {
+      img.image(src='#{content.url}', onclick='imageZoom(src)')
+    - }
     p.date(value='#{recordedAt}')
   .message-tail
-
-
-// 날짜 포맷팅
-script.
-  var recordedAt = '#{recordedAt}';  
-  var recordedDate = new Date(recordedAt);
-  var recordString = recordedDate.getFullYear();
-  recordString += '-' + (recordedDate.getMonth()+1);
-  recordString += '-' + recordedDate.getDate();  
-  recordString += ' ' + recordedDate.getHours();
-  recordString += recordedDate.getMinutes() < 10 ? ':0' : ':';
-  recordString += recordedDate.getMinutes();
-    
-  $('.message-container > .content > p.date').html(recordString);

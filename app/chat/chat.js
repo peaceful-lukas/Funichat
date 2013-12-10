@@ -1,6 +1,7 @@
 var amqp	 = require('amqp');
 var io		 = require('socket.io');
 var os		 = require('os');
+var async  = require('async');
 var mongoose = require('mongoose');
 var Room	 = mongoose.model('Room');
 var Chat     = mongoose.model('Chat');
@@ -130,17 +131,35 @@ module.exports = function (server, config) {
 
 				if( socket.rid ) {
 					var msg = JSON.parse(data);
-
-					// MongoDB 에 메세지 저장.
-					var chat = new Chat(msg);
-					chat.rid = socket.rid;
-					chat.save(function(err) {
-						if(err) throw new Error(err.message);
-						else {
-							// RabbitMQ 서버로 메세지 전송.
+					
+					async.waterfall([
+						// save into Rooms
+						function(cb) {
+							Room.update({ _id: socket.rid }, {$set: { lastRecordTime: new Date() }}, function(err) {
+								if(err) throw new Error(err.message);
+								else {
+									cb(null);
+								}
+							});
+						},
+						
+						// save into Chats
+						function(cb) {
+							var chat = new Chat(msg);
+							chat.rid = socket.rid;
+							chat.save(function(err) {
+								if(err) throw new Error(err.message);
+								else {
+									cb(null, chat);
+								}
+							});
+						},
+						
+						// send message to RabbitMQ server.
+						function(chat, cb) {
 							messageExchange.publish('', JSON.stringify(chat));
 						}
-					});
+					]);
 				}
 				else {
 					logger.warn('[ app/chat/chat.js ] - DB.insert failed! socket.rid is null.');

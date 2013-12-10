@@ -9,8 +9,8 @@ module.exports = function(app, config) {
 
 	app.use(express.cookieParser());
 
-    app.use(express.bodyParser());
-    app.use(express.methodOverride());
+  app.use(express.bodyParser({uploadDir: config.root + '/public/tmp/'}));
+  app.use(express.methodOverride());
 
 	app.use(express.session({
 		secret: 'funichat-lukas'
@@ -32,7 +32,11 @@ module.exports = function(app, config) {
 			name: req.session.name,
 			launchCode: req.session.launchCode,
 			iOS: iOS,
-			profileImageUrl: req.session.profileImageUrl || '/images/profile-default-img.png'
+			profileImageUrl: req.session.profileImageUrl || 'http://terminal2.hellowd.com/files/images/gd/profile-default-img.png'
+		};
+		
+		res.locals.css = {
+			path: req.session.css
 		};
 		
 		next();

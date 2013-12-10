@@ -1,4 +1,11 @@
+script(type='text/javascript' src='/js/jquery.form.min.js')
+
 #message-input
+  .file-input-layer(style='overflow: hidden')
+    form(method='POST', enctype='multipart/form-data', id='image-form')
+      input.file(id='file-trigger', type='file', name='image' accept='image/*', data-sigil='photo-input')
+      
+  button.add-file-button +
   input.message-input-box(type='text')
   a.message-send-button 전송
   
@@ -10,7 +17,7 @@ a.prev-messages 기존 대화목록 가져오기
 
 // CSS Control
 script.
-  var messageInputBoxWidth = $('#message-input').width() - 110;
+  var messageInputBoxWidth = $('#message-input').width() - 150;
   $('input.message-input-box').width(messageInputBoxWidth);
   
   
@@ -24,7 +31,10 @@ script.
         rid: '#{rid}',
         from: '#{user.name}',
         profileImg: '#{user.profileImageUrl}',
-        content: message
+        content: JSON.stringify({
+          type: 'text',
+          message: message
+        })
       };
       
       if( socket.socket.connected ) {
@@ -37,8 +47,63 @@ script.
     }
   }
   
+  function sendImage(imageUrl) {
+    if(imageUrl.length > 0) {
+      var data = {
+        gid: '#{user.gid}',
+        rid: '#{rid}',
+        from: '#{user.name}',
+        profileImg: '#{user.profileImageUrl}',
+        content: JSON.stringify({
+          type: 'image',
+          url: imageUrl
+        })
+      };
+      
+      if( socket.socket.connected ) {
+        socket.send(JSON.stringify(data));
+      }
+      
+      else {
+        alert('사진 이미지 url 전송에 실패했습니다.');
+      }
+    }
+  }
+
+// 업로드 폼 정의.
+script.
+  var uploadFormDef = {
+    url: '/imager/upload',
+    success: function(data) {
+      if(data.success) {
+        sendImage(data.imageUrl);
+      }
+      else {
+        alert('uploading failed!');
+      }
+    },
+    error: function(data) {
+      alert('error on uploading image');
+    }
+  };
   
-script.  
+// 리스너 등록.
+script.
+  // 파일 전송 관련
+  $('#image-form').ajaxForm( uploadFormDef );
+  $('button.add-file-button').click(function() { $('#file-trigger').click() });
+  $('#file-trigger:file').change(function() {
+    var file = this.files[0];
+    
+    if( !file.type.match(/image.\/*/) ) {
+      alert('이미지 파일이 아닙니다.');
+    }
+    else {
+      $('#image-form').submit();
+    }
+  });
+  
+  
   // 메세지 전송 함수 등록
   $('a.message-send-button').click( sendMessage );
   $('input.message-input-box').on('keypress', function(e) {
@@ -57,6 +122,9 @@ script.
   // 이전 메세지 기록 요청
   $('a.prev-messages').click(function() {
     var target = $('ul.message-list > li:last > div.message-container > .content > p:eq(1)').attr('value');
+    if( !target ) { // 이미지 인경우.
+      target = $('ul.message-list > li:last > div.message-container > .content > p:eq(0)').attr('value');
+    }
     
     var data = {};
     data.target = target;

@@ -1,10 +1,14 @@
 var rooms	 = require('../app/controllers/rooms');
 var messages = require('../app/controllers/messages');
 var advertisements = require('../app/controllers/advertisements');
+var imager = require('../app/controllers/imager');
+var favorites = require('../app/controllers/favorites');
 
+var middleDecipher = require('./middlewares/decipher').execute;
 var middleAuth	 = require('./middlewares/authorization').hasAuthorization;
 var middleAdvertisement = require('./middlewares/advertisement').pushAds;
-var middlewares = [ middleAuth, middleAdvertisement ];
+var middleSkin = require('./middlewares/appSkin').apply;
+var middlewares = [ middleDecipher, middleAuth, middleAdvertisement, middleSkin ];
 
 /**
  * Expose routes
@@ -12,13 +16,17 @@ var middlewares = [ middleAuth, middleAdvertisement ];
 module.exports = function(app) {
 
 	// 로그인.
-	app.get('/', middleAuth, rooms.login);
+	app.get('/', middlewares, rooms.login);
 
 	// 광고 클릭.
 	app.post('/clickAd', advertisements.click);
 
 	// 로비 입장.
 	app.get('/lobby', middlewares, rooms.lobby);
+	app.get('/lobby/tabs/normal', middleAuth, rooms.lobbyNormal);
+	app.get('/lobby/tabs/secret', middleAuth, rooms.lobbySecret);
+	app.get('/lobby/tabs/favorite', middleAuth, rooms.lobbyFavorite);
+	app.get('/lobby/search', middleAuth, rooms.lobbySearch);
 	
 	// 방 만들기 폼.
 	app.get('/room/form', middlewares, rooms.form);
@@ -36,11 +44,18 @@ module.exports = function(app) {
 	app.get('/room/:id/chat', middleAuth, rooms.chat);
 	app.get('/room/:id/info', middleAuth, rooms.info);
 	app.get('/room/:id/participants', middleAuth, rooms.participants);
-
-
+	
+	// 즐겨찾기
+	app.put('/favorites/add', middleAuth, favorites.addFavorite);
+	app.put('/favorites/remove', middleAuth, favorites.removeFavorite);
+	
 	// 메세지 렌더링.
 	app.post('/message', messages.message);
+	
+	// 이미지 업로드 처리.
+	app.post('/imager/upload', imager.upload);
 
 	// 파라미터 처리.
 	app.param('id', rooms.load);
+	
 }

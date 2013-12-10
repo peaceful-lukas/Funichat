@@ -3,6 +3,9 @@ var env		 = process.env.NODE_ENV || 'development';
 var config	 = require('../../config/config')[env];
 var Schema	 = mongoose.Schema;
 
+var Chat = mongoose.model('Chat');
+var Favorite = mongoose.model('Favorite');
+
 var logger	= require('../../libs/Logger');
 
 /**
@@ -20,7 +23,8 @@ var RoomSchema = new Schema({
 	secretKey: { type: String, default: '' },
 	thumbnail: { type: String, default: '', trim: true },
 	owner: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now }
+	createdAt: { type: Date, default: Date.now },
+	lastRecordTime: { type: Date, default: new Date(2000, 1, 1) }
 });
 
 
@@ -41,34 +45,74 @@ RoomSchema.path('capacity').validate(function(capacity) {
 
 
 /**
+ * Pre
+ */
+RoomSchema.pre('remove', function(next) {
+	Chat.remove({ rid: this._id }).exec();
+	Favorite.remove({ rid: this._id }).exec();
+	next();
+});
+
+/**
+ * Index
+ */
+RoomSchema.index({ gid: 1 });
+
+
+/**
  * Statics
  */
 RoomSchema.statics = {
-	// 대화방 정보를 가져온다.
-	load: function(id, callback) {
-		this.findOne({ _id: id }).exec(callback);
+	// type: normal | secret
+	// uid: favorite(즐겨찾기) 타입일 경우 필요
+	// description: 가장 최근 대화기록이 남아있는 30개의 채팅방 가져오기.
+	recent: function(gid, type, favs, callback) {
+		if( type === 'normal' ) {
+			this.find({ gid: gid, secret: false }).sort({ lastRecordTime: -1 }).limit(30).exec(function(err, rooms) {
+				if(err) throw new Error(err.message);
+				else {
+					rooms = rooms ? rooms : [];
+					callback(rooms);
+				}
+			});
+		}
+		else if( type === 'secret' ) {
+			this.find({ gid: gid, secret: true }).sort({ lastRecordTime: -1 }).limit(30).exec(function(err, rooms) {
+				if(err) throw new Error(err.message);
+				else {
+					rooms = rooms ? rooms : [];
+					callback(rooms);
+				}
+			});
+		}
+		else if( type === 'favorite' ) {
+			var favRids = [];
+			for(var i=0; i<favs.length; i++) {
+				favRids.push(favs[i].rid);
+			}
+			
+			this.find({ gid: gid, _id: {$in : favRids} }).sort({ lastRecordTime: -1 }).limit(30).exec(function(err, rooms) {
+				if(err) throw new Error(err.message);
+				else {
+					rooms = rooms ? rooms : [];
+					callback(rooms);
+				}
+			});
+		}
 	},
-
-	// gid 에 따라 개설된 채팅방을 로드하고 정렬기준에 따라 정렬한 후 리턴한다.
-	loadRoomsWithGid: function(gid, callback) {
-		this.find({ gid: gid }, function(err, rooms) {
+	
+	// key: 검색키워드
+	// description: 검색키워드와 매칭되는 모든 방 가져오기.
+	search: function(gid, key, callback) {
+		var keyRegex = new RegExp(key, 'g');
+		
+		this.find({ gid: gid, title: { $regex: keyRegex } }).sort({ lastRecordTime: -1 }).exec(function(err, rooms) {
 			if(err) throw new Error(err.message);
-
-			if(rooms) {
-
-				// 정렬기준 1 - 최신 생선순으로 정렬.
-				rooms.sort(function(x, y) {
-					return x.createdAt < y.createdAt;
-				});
-
-				// 정렬기준 2 - 현재 참여인원 순으로 정렬.
-				rooms.sort(function(x, y) {
-					return x.createdAt < y.createdAt && x.participants.count < y.participants.count;
-				});
-				
+			else {
+				rooms = rooms ? rooms : [];
 				callback(rooms);
 			}
-		});
+		})
 	},
 
 

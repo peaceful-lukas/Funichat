@@ -16,6 +16,12 @@ var ChatSchema = new Schema({
 
 
 /**
+ * Index
+ */
+ChatSchema.index({ rid: 1, recordedAt: -1 });
+
+
+/**
  * Statics
  */
 ChatSchema.statics = {

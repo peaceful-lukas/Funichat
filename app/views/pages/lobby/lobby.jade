@@ -2,11 +2,14 @@ extends ../../layouts/mobile
 
 block content
   .layer#lobby
-
-  - rooms.forEach(function(room) {
-    .room-cell(rid=room._id)
-      include roomcell
-  - })
+  
+  .room-tab
+    a.room-tab#room-tab-normal 일반
+    a.room-tab#room-tab-secret 비공개
+    a.room-tab#room-tab-favorite 즐겨찾기
+    .end-line
+    
+  #room-list
   
   .layer#blurred
   include ../popup/fullAlert
@@ -15,13 +18,32 @@ block content
   include ../popup/serverDisabled
   
   
+  // room cell layout : display none.
+  .room-cell#room-cell-copy
+    span.thumbnail
+      img.room-cell-thumbnail-bg
+      img.room-cell-thumbnail
+      img.room-cell-favorite-icon
+    span.desc
+      h3.room-cell-title
+      h6.room-cell-participant-info
+    span.status
+      img
+    .end-line
+    
   
+  // CSS Control.
+  script.
+    $('#room-tab-normal').addClass('room-tab-selected');
+    $('#room-cell-copy').css('display', 'none');    
+  
+  // Utilities
   script.
     function passwordCheck() {
       $('#blurred').css('display', 'none');
       $('#input-secret').css('display', 'none');
       
-      var data = { 
+      var data = {
         rid: _rid,
         secretKey: $('#secret-room-password').val()
       };
@@ -47,32 +69,178 @@ block content
         }
       });
     }
+    
+    
+    function search(key) {
+      var ajaxData = {
+        searchKey: key
+      };
+      
+      $.ajax({
+        type: 'GET',
+        url: '/lobby/search',
+        data: ajaxData,
+        success: function(data) {
+          renderSearchResult(data);
+        },
+        error: function(err) {
+          alert(err);
+        }
+      })
+    }
+    
+    function renderSearchResult(data) {
+      $('#room-list').empty();
+      
+      var rooms = data.rooms;
+      rooms.forEach(function(room) {
+        renderRoomCell(room);
+      });
+      
+      var favorites = data.favorites;
+      applyFavoriteIcon(favorites);
+      addRoomCellClickListener();
+    }
+    
+    function loadTab(url) {
+      $('#room-list').empty();
+      
+      $.ajax({
+        url: url,
+        type: 'GET',
+        success: function(data) {
+          var rooms = data.rooms;
+          rooms.forEach(function(room) {
+            renderRoomCell(room);
+          });
+          
+          var favorites = data.favorites;
+          applyFavoriteIcon(favorites);
+          addRoomCellClickListener();
+        },
+        error: function(err) {
+          alert(err);
+        }
+      });
+    }
+    
+    function renderRoomCell(room) {
+      var cell = $('#room-cell-copy').clone();
+      cell.removeAttr('id');
+      cell.attr('rid', room._id);
+      cell.css('display', 'block');
+      
+      cell.find('span.thumbnail > img.room-cell-thumbnail').attr('src', room.thumbnail);
+      cell.find('span.desc > h3.room-cell-title').html(room.title);
+      cell.find('span.desc > h6.room-cell-participant-info').html(room.participants.length + ' / ' + room.capacity + ' 참여중');
+      if( room.secret ) {
+        cell.find('span.status').attr('value', 'secret');
+        cell.find('span.status > img').addClass('room-cell-status-secret');
+      }
+      else if( room.participants.length < room.capacity ) {
+        cell.find('span.status').attr('value', 'available');
+        cell.find('span.status > img').addClass('room-cell-status-available');
+      }
+      else {
+        cell.find('span.status').attr('value', 'full');
+        cell.find('span.status > img').addClass('room-cell-status-full');
+      }
+      
+      $('#room-list').append(cell.wrap('<div/>').parent().html());
+    }
+    
+    function addRoomCellClickListener() {
+      $('.room-cell').click(function() {
+        var index = $('.room-cell').index(this);
+        var roomStatusSel = '.room-cell:eq(' + index + ') > span.status';
+        var roomStatus = $(roomStatusSel).attr('value');
+        
+        var ridSel = '.room-cell:eq(' + index + ')';
+        _rid = $(ridSel).attr('rid');
+        
+        if(roomStatus === 'available') {
+          var url = '/room/' + _rid;
+          window.location.replace(url);
+        }
+        else if(roomStatus === 'full') {
+          $('#blurred').css('display', 'block');
+          $('#full-alert').css('display', 'block');
+        }
+        else if(roomStatus === 'secret') {
+          $('#blurred').css('display', 'block');
+          $('#input-secret').css('display', 'block');
+        }
+      });
+    }
+    
+    function applyFavoriteIcon(favs) {
+      var roomList = $('#room-list').children() || [];
+      for(var i=0; i<roomList.length; i++) {
+        var cell = $(roomList[i]);
+        var favIcon = cell.find('span.thumbnail > img.room-cell-favorite-icon');
+        var rid = cell.attr('rid');
+        
+        favIcon.addClass('room-cell-favorite-icon-off');
+        for(var j=0; j<favs.length; j++) {
+          if(favs[j].rid === rid) {
+            favIcon.removeClass('room-cell-favorite-icon-off');
+            favIcon.addClass('room-cell-favorite-icon-on');
+            break;
+          }
+        }
+      }
+    }
+  
+  // Search Bar
+  script.
+    $('.nav-bar > input.nav-search').on('keyup', function(e) {
+      var searchKey = $('.nav-bar > input.nav-search').val();
+      if( searchKey.length > 0) {
+        search(searchKey);
+      }
+      else {
+        if( _tab === 'normal' ) loadTab('/lobby/tabs/normal');
+        else if( _tab === 'secret' ) loadTab('/lobby/tabs/secret');
+        else if( _tab === 'favorite' ) loadTab('/lobby/tabs/favorite');
+      }
+    });
+  
+  // Tab select
+  script.
+    $('#room-tab-normal').click(function() {
+      $('#room-tab-normal').addClass('room-tab-selected');
+      $('#room-tab-secret').removeClass('room-tab-selected');
+      $('#room-tab-favorite').removeClass('room-tab-selected');
+      
+      _tab = 'normal';
+      loadTab('/lobby/tabs/normal');
+    });
+    
+    $('#room-tab-secret').click(function() {
+      $('#room-tab-secret').addClass('room-tab-selected');
+      $('#room-tab-normal').removeClass('room-tab-selected');
+      $('#room-tab-favorite').removeClass('room-tab-selected');
+      
+      _tab = 'secret';
+      loadTab('/lobby/tabs/secret');
+    });
+    
+    $('#room-tab-favorite').click(function() {
+      $('#room-tab-favorite').addClass('room-tab-selected');
+      $('#room-tab-normal').removeClass('room-tab-selected');
+      $('#room-tab-secret').removeClass('room-tab-selected');
+      
+      _tab = 'favorite';
+      loadTab('/lobby/tabs/favorite');
+    });
   
   
   script.
     var _rid = null;
+    var _tab = null;
     
-    $('.room-cell').click(function() {
-      var index = $('.room-cell').index(this);
-      var roomStatusSel = '.room-cell:eq(' + index + ') > span.status';
-      var roomStatus = $(roomStatusSel).attr('value');
-      
-      var ridSel = '.room-cell:eq(' + index + ')';
-      _rid = $(ridSel).attr('rid');
-      
-      if(roomStatus === 'available') {
-        var url = '/room/' + _rid;
-        window.location.replace(url);
-      }
-      else if(roomStatus === 'full') {
-        $('#blurred').css('display', 'block');
-        $('#full-alert').css('display', 'block');
-      }
-      else if(roomStatus === 'secret') {
-        $('#blurred').css('display', 'block');
-        $('#input-secret').css('display', 'block');
-      }
-    });
+    loadTab('/lobby/tabs/normal');
+    _tab = 'normal';
     
     $('#input-secret a.ok').click( passwordCheck );
     $('#input-secret a.cancel').click(function() {

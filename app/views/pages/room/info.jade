@@ -36,6 +36,12 @@ include ../popup/roomDropConfirm
   .end-line
 
   .button-group
+    - if( fav ) {
+      a.favorite.favorite-on(value='true') 즐겨찾기
+    - }
+    - else {
+      a.favorite.favorite-off(value='false') 즐겨찾기
+    - }
     a.ok 수정하기
 
 
@@ -221,6 +227,49 @@ script.
       $('.room-info-cell > input.input-img-value').val('true');
     }
   });
+  
+  $('a.favorite').click(function() {
+    var ajaxData = {
+      rid: '#{rid}'
+    };
+    
+    var favorite = $('a.favorite').attr('value');
+    
+    if( favorite === 'false' ) {
+      $.ajax({
+        type: 'PUT',
+        url: '/favorites/add',
+        data: ajaxData,
+        success: function(result) {
+          if(result.success) {
+            $('a.favorite').removeClass('favorite-off');
+            $('a.favorite').addClass('favorite-on');
+            $('a.favorite').attr('value', 'true');
+          }
+        },
+        error: function(result) {
+          alert(result);
+        }
+      });
+    }
+    else if( favorite === 'true') {
+      $.ajax({
+        type: 'PUT',
+        url: '/favorites/remove',
+        data: ajaxData,
+        success: function(result) {
+          if(result.success) {
+            $('a.favorite').removeClass('favorite-on');
+            $('a.favorite').addClass('favorite-off');
+            $('a.favorite').attr('value', 'false');
+          }
+        },
+        error: function(result) {
+          alert(result);
+        }
+      });
+    }
+  })
   
   
 // Click Event Listeners.

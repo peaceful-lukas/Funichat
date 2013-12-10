@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
-var Room	 = mongoose.model('Room');
-var Chat     = mongoose.model('Chat');
+var Room = mongoose.model('Room');
+var Favorite = mongoose.model('Favorite');
 
 var logger   = require('../../libs/Logger');
 
@@ -13,15 +13,62 @@ exports.login = function(req, res) {
 }
 
 exports.lobby = function(req, res) {
-	Room.loadRoomsWithGid(req.session.gid, function(rooms) {
-		var data = {
-			page: 'lobby',
-			hdrTitle: '새 그룹 만들기',
-			
-			rooms: rooms || []
-		};
+	var data = {
+		page: 'lobby',
+	};
 
-		res.render('pages/lobby/lobby.jade', data);
+	res.render('pages/lobby/lobby.jade', data);
+}
+
+exports.lobbyNormal = function(req, res) {
+	Favorite.list(req.session.name, function(favs) {
+		Room.recent(req.session.gid, 'normal', null, function(rooms) {
+			var data = {
+				rooms: rooms,
+				favorites: favs
+			};
+			
+			res.json(200, data);
+		});
+	});
+}
+
+exports.lobbySecret = function(req, res) {
+	Favorite.list(req.session.name, function(favs) {
+		Room.recent(req.session.gid, 'secret', null, function(rooms) {
+			var data = {
+				rooms: rooms,
+				favorites: favs
+			};
+			
+			res.json(200, data);
+		});
+	});
+}
+
+exports.lobbyFavorite = function(req, res) {
+	Favorite.list(req.session.name, function(favs) {
+		Room.recent(req.session.gid, 'favorite', favs, function(rooms) {
+			var data = {
+				rooms: rooms,
+				favorites: favs
+			};
+			
+			res.json(200, data);
+		});
+	});
+}
+
+exports.lobbySearch = function(req, res) {
+	Favorite.list(req.session.name, function(favs) {
+		Room.search(req.session.gid, req.query.searchKey, function(rooms) {
+			var data = {
+				rooms: rooms,
+				favorites: favs
+			};
+			
+			res.json(200, data);
+		});
 	});
 }
 
@@ -43,16 +90,16 @@ exports.form = function(req, res) {
 exports.create = function(req, res) {
 	// Room 생성
 	var room = new Room(req.body);
-	var thumbType = 1 + Math.floor(5*Math.random());
-	room.thumbnail = '/images/room-thumb-' + thumbType + '.png'
+	
+	var thumbList = req.session.cssDef.lobby.roomCell.roomThumb.thumbImgUrls;
+	
+	var thumbType = Math.floor( thumbList.length * Math.random() );
+	room.thumbnail = thumbList[thumbType];
 	room.owner = req.session.name;
 	room.save();
 
 	logger.debug(room);
 
-	// res.json() 으로 리턴하는 이유는
-	// 히스토리를 남기지 않기 위해 클라이언트에서 ajax 요청후
-	// window.location.replace() 로 처리하기 위함이다.
 	res.json(200, { rid: room._id });
 }
 
@@ -77,18 +124,14 @@ exports.update = function(req, res) {
 // 그룹 삭제
 ////////////////////////////////////////////////////////////////////////////////////////
 exports.drop = function(req, res) {
-	var rid = req.body.rid;
-	Room.findByIdAndRemove(rid, function(err, room) {
-		if(err) throw new Error(err.message);
-		else {
-			if(room) {
+	Room.findOne({ _id: req.body.rid }, function(err, room) {
+		room.remove(function(err) {
+			if(err) throw new Error(err.message);
+			else {
 				res.json(200, { success: true });
 			}
-			else {
-				res.json(200, { success: false });
-			}
-		}
-	});
+		});
+	})
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -130,8 +173,13 @@ exports.chat = function(req, res) {
 // 대화방(그룹정보)
 ////////////////////////////////////////////////////////////////////////////////////////
 exports.info = function(req, res) {
-	req.room.rid = req.room._id;
-	res.render('pages/room/info.jade', req.room);
+	var rid = req.room._id;
+	var uid = req.session.name;
+	Favorite.check(rid, uid, function(result) {
+		req.room.rid = req.room._id;
+		req.room.fav = result;
+		res.render('pages/room/info.jade', req.room);
+	})
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -146,7 +194,7 @@ exports.participants = function(req, res) {
 // 대화방 id 바인드
 ////////////////////////////////////////////////////////////////////////////////////////
 exports.load = function(req, res, next, id) {
- 	Room.load(id, function(err, room) {
+ 	Room.findOne({ _id: id }, function(err, room) {
  		if( err )   return next(err);
  		if( !room ) return next(new Error('room not exist'));
  		

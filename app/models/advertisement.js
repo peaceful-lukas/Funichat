@@ -13,6 +13,11 @@ var AdvertisementSchema = new Schema({
 	clickCount: { type: Number, default: 0 }
 });
 
+/**
+ * Index
+ */
+AdvertisementSchema.index({ gid: 1 });
+
 
 /**
  * Validation

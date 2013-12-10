@@ -1,0 +1,21 @@
+#image-zoom-in
+  img
+  img.close 닫기
+  
+script.
+  var IMAGE_ZOOM_IN = {};
+  
+  IMAGE_ZOOM_IN.width = $(window).width() * 90/100;
+  IMAGE_ZOOM_IN.height = $(window).height() * 90/100;
+  IMAGE_ZOOM_IN.left = $(window).width() * 5/100 - 5;
+  IMAGE_ZOOM_IN.top = $(window).height() * 5/100 - 5;
+  $('#image-zoom-in').css('width', IMAGE_ZOOM_IN.width);
+  $('#image-zoom-in').css('height', IMAGE_ZOOM_IN.height);
+  $('#image-zoom-in').css('left', IMAGE_ZOOM_IN.left);
+  $('#image-zoom-in').css('top', IMAGE_ZOOM_IN.top);
+  
+script.
+  $('img.close').click(function() {
+    $('#image-zoom-in').css('display', 'none');
+    $('#blurred').css('display', 'none');
+  });

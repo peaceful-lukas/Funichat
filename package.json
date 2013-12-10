@@ -14,7 +14,8 @@
     "mongoose": "latest",
     "socket.io": "latest",
     "amqp": "latest",
-    "connect-mongo": "latest",
+    "async": "latest",
+    "request": "latest",
     "log4js": "latest",
     "source-map": "latest"
   }

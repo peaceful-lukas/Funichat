@@ -8,10 +8,11 @@ block content
   #page-loader
     img
     p 크롬을 사용하시면 최적화된<br>서비스를 이용하실 수 있습니다.
-  
+      
   .layer#blurred
   include ../popup/roomDropAlert
   include ../popup/ownerAlert
+  include ../popup/imageZoomIn
   
   .participant-list-item
     li
@@ -21,6 +22,7 @@ block content
   
   script.
     $('.participant-list-item').css('display', 'none');
+    $('p.nav-extra').css('display', 'none');
   
   // import socket.io
   script(text='text/javascript', src='/socket.io/socket.io.js')
@@ -66,7 +68,6 @@ block content
         $('p.nav-title').html( roomTitle );
         $('p.nav-extra').css('display', 'inline-block');
         $('p.nav-extra').html( roomParticipantsCount + ' / ' + '#{room.capacity}' + ' > ' );
-        $('p.nav-extra').click(function() { render('info'); });
         
         // back button event listener
         $('a.back-button').unbind('click');
@@ -145,6 +146,8 @@ block content
         $('#page-loader').css({display: 'none' });
         $('a.prev-messages').css('display', 'block');
         $('#message-input').css('display', 'block');
+        $('p.nav-extra').css('display', 'inline-block');
+        $('p.nav-extra').click(function() { render('info'); });
       });
       
       socket.on('disconnect', function() {
@@ -194,12 +197,61 @@ block content
           var msgView = document.createElement('li');
           msgView.className = '#{user.name}' === message.from ? 'message-box-mine' : 'message-box-others';
           msgView.innerHTML = view;
+          msgView = $(msgView);
           
-          if(type === 'normal') { $('ul.message-list').prepend(msgView); }
-          else if(type === 'prev') { $('ul.message-list').append(msgView); }
+          if(type === 'normal') {
+            $('ul.message-list').prepend(msgView);
+            
+            var recordedAt = msgView.find('.message-container > .content > p.date').attr('value');
+            msgView.find('.message-container > .content > p.date').html( dateFormat(new Date(recordedAt), 'plain') );
+          }
+          else if(type === 'prev') { 
+            $('ul.message-list').append(msgView);
+            
+            var recordedAt = msgView.find('.message-container > .content > p.date').attr('value');
+            msgView.find('.message-container > .content > p.date').html( dateFormat(new Date(recordedAt), 'calculated') );
+          }
         },
         async: false
       });
+    }
+    
+    function dateFormat(date, type) {
+      console.log(date);
+      if( type === 'plain') {
+        var formatted = date.getFullYear();
+        formatted += '-' + (date.getMonth()+1);
+        formatted += '-' + date.getDate();
+        formatted += ' ' + date.getHours();
+        formatted += date.getMinutes() < 10 ? ':0' : ':';
+        formatted += date.getMinutes();
+      }
+      
+      else if( type === 'calculated' ) {
+        var formatted = '';
+        var diff = new Date().getTime() - date.getTime();
+        
+        if( diff < 1000 )
+          formatted = '지금 막';
+        else if( diff < 60 * 1000 )
+          formatted = parseInt( diff / 1000 ) + '초 전';
+        else if( diff < 60 * 60 * 1000 )
+          formatted = parseInt( diff / (60 * 1000) ) + '분 전';
+        else if( diff < 24 * 60 * 60 * 1000 )
+          formatted = parseInt( diff / (60 * 60 * 1000) ) + '시간 전';
+        else if( diff < 30 * 24 * 60 * 60 * 1000 )
+          formatted = parseInt( diff / (24 * 60 * 60 * 1000) ) + '일 전';
+        else {
+          formatted = date.getFullYear();
+          formatted += '-' + (date.getMonth()+1);
+          formatted += '-' + date.getDate();
+          formatted += ' ' + date.getHours();
+          formatted += date.getMinutes() < 10 ? ':0' : ':';
+          formatted += date.getMinutes();
+        }
+      }
+      
+      return formatted;
     }
     
     function applyEntrance(entrance) {
@@ -314,7 +366,12 @@ block content
         }
       }
     }
-  
+    
+    function imageZoom(imageUrl) {
+      $('#blurred').css('display', 'block');
+      $('#image-zoom-in').css('display', 'block');
+      $('#image-zoom-in > img').attr('src', imageUrl);
+    }
   
   // main script.
   script.

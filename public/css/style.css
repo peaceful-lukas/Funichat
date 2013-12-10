@@ -1,5 +1,7 @@
 * {
-	font: 14px "Lucida Grande" Helvetica Arial sans-serif;
+	color: #ffffff; /* @REF : [ theme.fontColor ] */
+	font-size: 14px; /* @REF : [ theme.fontSize ] */
+	font-family: "Lucida Grande" Helvetica Arial sans-serif; /* @REF : [ theme.fontFamily ] */
 }
 
 body {
@@ -100,6 +102,31 @@ body {
 	font-size: 14px; /* @REF : [ theme.header.navBar.title.fontSize ] */
 }
 
+.nav-bar img.nav-separator {
+	margin-left: 10px;
+	margin-right: 10px;
+	top: -10px;
+	vertical-align: top;
+	display: inline-block;
+	position: relative;
+	width: 2px;
+	height: 45px;
+	content: url(../images/nav-separator.png); /* @REF : [ theme.header.navBar.separator.imageUrl ] */
+}
+
+.nav-bar input.nav-search {
+	display: inline-block;
+	position: relative;
+	top: -2px;
+	vertical-align: top;
+	padding-left: 10px;
+	padding-right: 5px;
+	border-radius: 1em;
+	color: #000000; /* @REF : [ theme.header.navBar.search.fontColor ] */
+	font-size: 16px; /* @REF : [ theme.header.navBar.search.fontSize ] */
+	outline: none;
+}
+
 .nav-bar p.nav-extra {
 	vertical-align: top;
 	margin: 0;
@@ -127,11 +154,29 @@ body {
 	/*padding-top: 10px;*/
 	overflow-x: hidden;
 	overflow-y: auto;
+	padding-bottom: 50px;
 }
 
 .layer {
 	position: relative;
 	width: 100%;
+}
+
+/*****************/
+/* Advertisement */
+/*****************/
+
+#ads-bar {
+	position: fixed;
+	width: 100%;
+	height: 50px;
+	bottom: 0;
+	left: 0;
+}
+
+#ads-bar img {
+	width: 100%;
+	height: 100%;
 }
 
 
@@ -181,16 +226,6 @@ body {
 	border-radius: 1em;
 }
 
-/* TODO */
-.room-info-cell img.input-toggle-img {
-	position: absolute;	
-	right: 0;
-	margin-top: 15px;
-	margin-right: 20px;
-	width: 60px;
-	height: 35px;
-}
-
 .room-info-cell img.input-toggle-img-public {
 	position: absolute;	
 	right: 0;
@@ -198,7 +233,7 @@ body {
 	margin-right: 20px;
 	width: 60px;
 	height: 35px;
-	content: url(../images/03_setting_select_O.png); /* @REF : [ theme.button.toggle.unchecked.imgUrl ] */
+	content: url(../images/03_setting_select_O.png); /* @REF : [ theme.button.toggle.uncheckedImgUrl ] */
 }
 
 .room-info-cell img.input-toggle-img-secret {
@@ -208,7 +243,7 @@ body {
 	margin-right: 20px;
 	width: 60px;
 	height: 35px;
-	content: url(../images/03_setting_select_X.png); /* @REF : [ theme.button.toggle.checked.imgUrl ] */
+	content: url(../images/03_setting_select_X.png); /* @REF : [ theme.button.toggle.checkedImgUrl ] */
 }
 
 .end-line {
@@ -224,14 +259,14 @@ a.ok {
 	padding-bottom: 10px;
 	padding-left: 50px;
 	padding-right: 50px;
-	background: #ff3e00; /* @REF : [ theme.button.ok.normal.backgroundColor ] */
-	color: #ffffff; /* @REF : [ theme.button.ok.normal.fontColor ] */
-	font-size: 14px; /* @REF : [ theme.button.ok.normal.fontSize ] */
+	background: #ff3e00; /* @REF : [ theme.button.ok.backgroundColor ] */
+	color: #ffffff; /* @REF : [ theme.button.ok.fontColor ] */
+	font-size: 14px; /* @REF : [ theme.button.ok.fontSize ] */
 	border-radius: 0.5em;
 }
 
 a.ok:active {
-	background: #ff0f00; /* @REF : [ theme.button.ok.active.backgroundColor ] */
+	background: #ff0f00; /* @REF : [ theme.button.ok.activeBackgroundColor ] */
 }
 
 a.cancel {
@@ -239,15 +274,36 @@ a.cancel {
 	padding-bottom: 10px;
 	padding-left: 50px;
 	padding-right: 50px;
-	background: #999999; /* @REF : [ theme.button.cancel.normal.backgroundColor ] */
-	color: #ffffff; /* @REF : [ theme.button.cancel.normal.fontColor ] */
-	font-size: 14px; /* @REF : [ theme.button.cancel.normal.fontSize ] */
+	background: #999999; /* @REF : [ theme.button.cancel.backgroundColor ] */
+	color: #ffffff; /* @REF : [ theme.button.cancel.fontColor ] */
+	font-size: 14px; /* @REF : [ theme.button.cancel.fontSize ] */
 	border-radius: 0.5em;	
 }
 
 a.cancel:active {
-	background: #888888; /* @REF : [ theme.button.cancel.active.backgroundColor ] */
+	background: #888888; /* @REF : [ theme.button.cancel.activeBackgroundColor ] */
 }
+
+a.favorite {
+	padding-top: 10px;
+	padding-bottom: 10px;
+	padding-left: 50px;
+	padding-right: 50px;
+	font-size: 14px; /* @REF : [ theme.button.favorite.fontSize ] */
+	border-radius: 0.5em;
+	background: #ffff00; /* @REF : [ theme.button.favorite.backgroundColor ] */
+	color: #000000; /* @REF : [ theme.button.favorite.fontColor ] */
+	font-weight: bold;
+}
+
+a.favorite-on {
+	opacity: 1;
+}
+
+a.favorite-off {
+	opacity: 0.4;
+}
+
 
 /*********/
 /* Lobby */
@@ -259,6 +315,61 @@ a.cancel:active {
 	margin-bottom: 10px;
 }
 
+.room-tab {
+	position: relative;
+	width: 100%;
+	height: 40px;
+}
+
+.room-tab a.room-tab {
+	border: 1px #4c4c4c solid; /* @REF : [ theme.lobby.tab.borderColor ] */
+	border-radius: 0.5em;
+	color: #666666; /* @REF : [ theme.lobby.tab.fontColor ] */
+	font-size: 13px; /* @REF : [ theme.lobby.tab.fontSize ] */
+	
+	position: absolute;
+	top: -2px;
+	height: 30px;
+	width: 28%;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	padding-left: 5%;
+	padding-right: 5%;
+	text-align: center;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-o-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+
+.room-tab a.room-tab-selected {
+	background: #330d00; /* @REF : [ theme.lobby.tab.selectedBackgroundColor ] */
+	border: 1px #ff3700 solid; /* @REF : [ theme.lobby.tab.selectedBorderColor ] */
+	color: #ff8157; /* @REF : [ theme.lobby.tab.selectedFontColor ] */
+}
+
+.room-tab #room-tab-normal {
+	left: 10px;
+}
+
+.room-tab #room-tab-secret {
+	margin-left: 36%;
+	margin-right: 20px;
+}
+
+.room-tab #room-tab-favorite {
+	right: 10px;
+}
+
+.room-tab .end-line {
+	position: absolute;
+	top: 35px;
+}
+
+
+
+
+
 .room-cell {
 	position: relative;
 	width: 100%;
@@ -266,7 +377,7 @@ a.cancel:active {
 }
 
 .room-cell:active {
-	background: white; /* @REF : [ theme.lobby.roomCell.activeColor ] */
+	background: #ffffff; /* @REF : [ theme.lobby.roomCell.activeColor ] */
 }
 
 .room-cell span.thumbnail {
@@ -294,7 +405,23 @@ a.cancel:active {
 	left: 0;
 	width: 80px;
 	height: 80px;
-	content: url(../images/room-thumb-bg.png);  /* @REF : [ theme.lobby.roomCell.roomThumb.bgImgUrl ] */
+	content: url(../images/room-thumb-bg.png); /* @REF : [ theme.lobby.roomCell.roomThumb.bgImgUrl ] */
+}
+
+.room-cell span.thumbnail img.room-cell-favorite-icon {
+	position: absolute;
+	top: 60px;
+	left: 50px;
+	width: 25px;
+	height: 25px;
+}
+
+.room-cell span.thumbnail img.room-cell-favorite-icon-on {
+	content: url(../images/favorite-on.png); /* @REF : [ theme.lobby.roomCell.favOnImgUrl ] */
+}
+
+.room-cell span.thumbnail img.room-cell-favorite-icon-off {
+	content: url(../images/favorite-off.png);	/* @REF : [ theme.lobby.roomCell.favOffImgUrl ] */
 }
 
 .room-cell span.desc {
@@ -403,16 +530,50 @@ a.cancel:active {
 	height: 40px;
 	background: url(../images/chat-input-bar.png) left top repeat-x; /* @REF : [ theme.room.inputBox.bgImageUrl ] */
 	background-size: 1px 40px;
-	z-index: 100000;
+	z-index: 3;
+}
+
+.file-input-layer {
+	position: absolute;
+	top: 5px;
+	left: 10px;
+	width: 30px;
+	height: 30px;
+}
+
+.file-input-layer input.file {
+	position: absolute;
+	top: 0;
+	left: 0;
+	font-size: 23px;
+	padding: 0;
+	opacity: 0;
+}
+
+button.add-file-button {
+	position: absolute;
+	margin: 0;
+	top: 5px;
+	left: 10px;
+	width: 30px;
+	height: 30px;
+	font-size: 20px;
+	padding: 1px;	
+	background: #999999; /* @REF : [ theme.button.add.backgroundColor ] */
+	color: #ffffff; /* @REF : [ theme.button.add.fontColor ] */
+	border: none;
+	border-radius: 4em;
+	outline: none;
 }
 
 input.message-input-box {
 	position: absolute;
 	top: 3px;
-	margin-left: 10px;
+	margin-left: 50px;
 	padding: 6px;
 	font-size: 14px; /* @REF : [ theme.input.fontSize ] */
-	border-radius: 0.3em;	
+	border-radius: 0.3em;
+	color: #000000; /* @REF : [ theme.input.fontColor ] */
 }
 
 a.message-send-button {
@@ -424,15 +585,14 @@ a.message-send-button {
 	padding-bottom: 7px;
 	padding-left: 20px;
 	padding-right: 20px;
-	background: #ff3e00; /* @REF : [ theme.button.ok.normal.backgroundColor ] */
-	color: #ffffff; /* @REF : [ theme.button.ok.normal.fontColor ] */
-	font-size: 14px; /* @REF : [ theme.button.ok.normal.fontSize ] */
+	background: #ff3e00; /* @REF : [ theme.button.ok.backgroundColor ] */
+	color: #ffffff; /* @REF : [ theme.button.ok.fontColor ] */
+	font-size: 14px; /* @REF : [ theme.button.ok.fontSize ] */
 	border-radius: 0.4em;	
 }
 
 a.message-send-button:active {
-	background: #ff0f00; /* @REF : [ theme.button.ok.active.backgroundColor ] */
-	color: #ffffff; /* @REF : [ theme.button.ok.active.fontColor ] */
+	background: #ff0f00; /* @REF : [ theme.button.ok.activeBackgroundColor ] */
 }
 
 #chat-screen {
@@ -482,6 +642,21 @@ li.message-box-mine .message-container p.message {
 	word-break:break-all;
 	white-space: normal;
 	text-align: left;
+}
+
+li.message-box-mine .message-container img.image {
+	position: relative;
+	display: inline-block;
+	right: 0;
+	margin: 0;
+	margin-right: 10px;
+	/*max-width: 70%;*/
+	max-width: 100px;
+	padding: 2px;
+	background-color: #ffffff; /* @REF : [ theme.room.chatScreen.messageBox.me.content.backgroundColor ] */
+	border-radius: 0.8em;
+	text-align: left;
+	z-index: 2;
 }
 
 li.message-box-mine .message-container p.date {
@@ -570,6 +745,21 @@ li.message-box-others .message-container .content p.message {
 	word-break:break-all;
 	white-space: normal;
 	text-align: left;
+}
+
+li.message-box-others .message-container .content img.image {
+	position: relative;
+	display: inline-block;
+	left: 0;
+	margin: 0;
+	margin-left: 10px;
+	/*max-width: 70%;*/
+	max-width: 100px;
+	padding: 2px;
+	background-color: #999999; /* @REF : [ theme.room.chatScreen.messageBox.others.content.backgroundColor ] */
+	border-radius: 0.8em;
+	text-align: left;
+	z-index: 2;
 }
 
 li.message-box-others .message-container .content p.date {
@@ -688,6 +878,13 @@ a.prev-messages {
 	margin-top: 10px;
 }
 
+#info .button-group a.favorite {
+	display: inline-block;
+	position: relative;
+	margin-top: 10px;
+	margin-right: 20px;
+}
+
 
 
 /****************/
@@ -767,8 +964,8 @@ ul.participants-list li img.user-img {
 	margin-left: 50%;
 	width: 250px;
 	height: 160px;
-	background-color: #ffffff; /* @REF : [ theme.alert.backgroundColor ] */
-	border: #999999 7px solid; /* @REF : [ theme.alert.borderColor ] */
+	background-color: #ffffff; /* @REF : [ theme.dialog.alert.backgroundColor ] */
+	border: #999999 7px solid; /* @REF : [ theme.dialog.alert.borderColor ] */
 	border-radius: 2em;
 	z-index: 10;
 }
@@ -776,8 +973,8 @@ ul.participants-list li img.user-img {
 .funichat-alert p {
 	position: relative;
 	text-align: center;
-	color: #000000; /* @REF : [ theme.alert.fontColor ] */
-	font-size: 13px; /* @REF : [ theme.alert.fontSize ] */
+	color: #000000; /* @REF : [ theme.dialog.alert.fontColor ] */
+	font-size: 13px; /* @REF : [ theme.dialog.alert.fontSize ] */
 	font-weight: bold;
 	line-height: 23px;
 	height: 100%;
@@ -804,8 +1001,8 @@ ul.participants-list li img.user-img {
 	margin-left: 50%;
 	width: 250px;
 	height: 160px;
-	background-color: #1f1f1f; /* @REF : [ theme.confirm.backgroundColor ] */
-	border: #999999 7px solid; /* @REF : [ theme.confirm.borderColor ] */
+	background-color: #1f1f1f; /* @REF : [ theme.dialog.confirm.backgroundColor ] */
+	border: #999999 7px solid; /* @REF : [ theme.dialog.confirm.borderColor ] */
 	border-radius: 2em;
 	z-index: 10;
 }
@@ -828,8 +1025,8 @@ ul.participants-list li img.user-img {
 	font-size: 13px;
 	font-weight: bold;
 	line-height: 23px;
-	color: #ffffff; /* @REF : [ theme.confirm.fontColor ] */
-	font-size: 14px; /* @REF : [ theme.confirm.fontSize ] */
+	color: #ffffff; /* @REF : [ theme.dialog.confirm.fontColor ] */
+	font-size: 14px; /* @REF : [ theme.dialog.confirm.fontSize ] */
 }
 
 .funichat-confirm a.cancel {
@@ -853,6 +1050,7 @@ ul.participants-list li img.user-img {
 	padding-right: 20px;
 	border-radius: 1em;
 }
+
 
 
 
@@ -886,4 +1084,36 @@ ul.participants-list li img.user-img {
 	font-size: 14px; /* @REF : [ theme.pageLoader.fontSize ] */
 	text-align: center;
 	width: 200px;
+}
+
+
+/*****************/
+/* Image Zoom In */
+/*****************/
+
+#image-zoom-in {
+	display: none;
+	position: fixed;
+	padding: 10px;
+	z-index: 10;
+	border-radius: 1em;
+	background: #ffffff; /* @REF : [ theme.room.chatScreen.imageZoom.backgroundColor ] */
+}
+
+#image-zoom-in img {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+#image-zoom-in img.close {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	width: 30px;
+	height: 30px;
+	content: url(../images/plus.png); /* @REF : [ theme.room.chatScreen.imageZoom.closeBtnImageUrl ] */
+	transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+	z-index: 11;
 }

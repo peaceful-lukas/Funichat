@@ -10,6 +10,16 @@ var mongoose = require('mongoose');
 ////////////////////////////////////////////////////////////////////////////////////////
 // Bootstrap db connection
 ////////////////////////////////////////////////////////////////////////////////////////
+var db = mongoose.connection;
+db.on('connected', function() {
+	logger.info('MongoDB connected!');
+});
+db.on('disconnected', function() {
+	logger.info('MongoDB disconnected!');
+});
+db.on('reconnected', function() {
+	logger.info('MongoDB reconnected!');
+});
 mongoose.connect(config.db.host, config.db.option);
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -67,8 +77,10 @@ else if( env === 'production' ) {
 	    cert:   fs.readFileSync('/etc/CA/www_funichat_com.crt')
 	};
 
-	var port = process.env.PORT || 443;
-	var server = https.createServer(options, app).listen(port);
+	// var port = process.env.PORT || 443;
+	// var server = https.createServer(options, app).listen(port);
+	var port = process.env.PORT || 80;
+	var server = http.createServer(app).listen(port);
 }
 // app.listen(port);
 logger.info('Funichat Express server['+env+'] started on port ' + port);

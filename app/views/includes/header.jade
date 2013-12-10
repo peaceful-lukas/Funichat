@@ -3,32 +3,44 @@ header
     a.back-button
     img.logo
     a.return-button
-
+    
+    // 게임으로 돌아기기
+    script.
+      $('a.return-button').click(function() {
+        if( #{user.iOS} ) {
+          window.location.href = '#{user.launchCode.iOS}';
+        }
+        else {
+          window.location.href = '#{user.launchCode.android}';
+        }
+      });
+    
   .nav-bar
-    
-    
     - if ( page === 'lobby' ) {
       img.nav-thumb#plus-icon
-      p.nav-title 채팅방 만들기
+      p.nav-title 새 채팅방
+      img.nav-separator
+      input.nav-search(type='text', placeholder='Search')
       
       script.
+        $('input.nav-search').css('width', $(window).width() - 220);
         $('a.back-button').css('display', 'none');
-
+        
       script.
         $('p.nav-title').click(function() {
           window.location.replace('/room/form');
         });
     - }
-    
+      
     - else if ( page === 'form' ) {
       p.nav-title 채팅방 생성
-
+      
       script.
         $('a.back-button').click(function() {
           window.location.replace('/lobby');
         });
     - }
-
+      
     - else if( page === 'room' ) {
       img.nav-thumb
       p.nav-title
