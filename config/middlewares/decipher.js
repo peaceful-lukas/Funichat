@@ -60,8 +60,8 @@ module.exports = {
         var now = new Date().getTime();
         var timestamp = new Date(req.query.timestamp).getTime();
         
-        // 10초 이내 요청 받아들이고, 미래시각일 경우 요청 거절.
-        if( now > timestamp && now - timestamp < 10 * 1000 ) {
+        // 현재시각으로부터 10초이내의 요청만 받아들인다.
+        if( now - timestamp > -10 * 1000 && now - timestamp < 10 * 1000 ) {
           cb(null);
         }
         else {
@@ -72,6 +72,9 @@ module.exports = {
       
       // basis 복호화
       function(cb) {
+        logger.debug('basis original');
+        logger.debug(encodeURIComponent(req.query.basis));
+        
         var basis = req.query.basis;
         
         var iv = new Buffer('FuniChat@HelloWd', 'utf-8');
@@ -82,8 +85,11 @@ module.exports = {
         
         try {
           var decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-          var decrypted = decipher.update(basisBase64, 'utf8', 'utf8');
+          var decrypted = decipher.update(basisBase64, 'base64', 'utf8');
           decrypted += decipher.final('utf8');
+          
+          logger.debug('basis deciphered');
+          logger.debug(decrypted);
           
           var params = querystring.parse(decrypted);
           var gid = params.gid;
@@ -93,6 +99,7 @@ module.exports = {
           cb(null, gid, name, profileImageUrl);
           
         } catch(e) {
+          logger.debug(e);
           res.status(400).render('status/400.jade');
         }
       },

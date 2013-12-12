@@ -7,7 +7,8 @@ block content
   
   #page-loader
     img
-    p 크롬을 사용하시면 최적화된<br>서비스를 이용하실 수 있습니다.
+    p 로딩 중 ...<br>잠시만 기다려주세요<br><br>최신브라우저를 사용하면 최적화된<br>서비스를 이용하실 수 있습니다.
+    //- p 크롬을 사용하시면 최적화된<br>서비스를 이용하실 수 있습니다.
       
   .layer#blurred
   include ../popup/roomDropAlert
@@ -84,7 +85,7 @@ block content
               isChatRendered = true;
             }
             
-            $('#page-loader').css('display', 'inline-block');
+            pageLoader('on');
             $('#message-input').css('display', 'none');
             $('a.prev-messages').css('display', 'none');
           }); 
@@ -143,7 +144,8 @@ block content
     
     function registerSocketListeners() {
       socket.on('connect', function() {
-        $('#page-loader').css({display: 'none' });
+        
+        pageLoader('off');
         $('a.prev-messages').css('display', 'block');
         $('#message-input').css('display', 'block');
         $('p.nav-extra').css('display', 'inline-block');
@@ -153,7 +155,8 @@ block content
       socket.on('disconnect', function() {
         $('a.prev-messages').css('display', 'none');
         $('#message-input').css('display', 'none');
-        $('#page-loader').css({display: 'inline-block' });
+        
+        pageLoader('on');
       });
       
       socket.on('message', function(data) {
@@ -184,7 +187,7 @@ block content
           $('a.prev-messages').css('opacity', 0.3);
         }
         
-        $('#page-loader').css({display: 'none' });
+        pageLoader('off');
       });
     }
     
@@ -371,6 +374,18 @@ block content
       $('#blurred').css('display', 'block');
       $('#image-zoom-in').css('display', 'block');
       $('#image-zoom-in > img').attr('src', imageUrl);
+    }
+    
+    
+    function pageLoader(toggle) {
+      if( toggle === 'on' ) {
+        $('#blurred').css('display', 'block');
+        $('#page-loader').css('display', 'inline-block');
+      }
+      else {
+        $('#blurred').css('display', 'none');
+        $('#page-loader').css('display', 'none');
+      }
     }
   
   // main script.

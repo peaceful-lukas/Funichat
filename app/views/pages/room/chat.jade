@@ -1,4 +1,8 @@
+// import jquery.form.js - ajaxForm lib
 script(type='text/javascript' src='/js/jquery.form.min.js')
+
+
+
 
 #message-input
   .file-input-layer(style='overflow: hidden')
@@ -15,10 +19,12 @@ script(type='text/javascript' src='/js/jquery.form.min.js')
 a.prev-messages 기존 대화목록 가져오기
 
 
+
+
+
 // CSS Control
 script.
-  var messageInputBoxWidth = $('#message-input').width() - 150;
-  $('input.message-input-box').width(messageInputBoxWidth);
+  $('input.message-input-box').css('width', $(window).width() - 150);
   
   
 // Utilities
@@ -75,6 +81,8 @@ script.
   var uploadFormDef = {
     url: '/imager/upload',
     success: function(data) {
+      pageLoader('off');
+      
       if(data.success) {
         sendImage(data.imageUrl);
       }
@@ -99,6 +107,8 @@ script.
       alert('이미지 파일이 아닙니다.');
     }
     else {
+      pageLoader('on');
+      
       $('#image-form').submit();
     }
   });
@@ -129,5 +139,6 @@ script.
     var data = {};
     data.target = target;
     socket.emit('prevMessages', JSON.stringify(data));
-    $('#page-loader').css({display: 'inline-block' });
+    
+    pageLoader('on');
   });

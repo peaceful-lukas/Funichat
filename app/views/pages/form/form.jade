@@ -44,8 +44,7 @@ block content
     $('#secretToggle').attr('class', 'input-toggle-img-public');
     $('#room-cell-secret-key').css('display', 'none');
     
-    var inputBoxWidth = $('.room-info-cell').width() - 200;
-    $('.room-info-cell > input.input-box').width( inputBoxWidth );
+    $('.room-info-cell > input.input-box').css('width', $(window).width() - 200);
   
   // Toggle Control.
   script.

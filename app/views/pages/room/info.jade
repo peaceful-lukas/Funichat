@@ -94,11 +94,9 @@ script.
   var secret = #{secret};
   if( !secret ) {
     $('#room-cell-secret-key').css('display', 'none');
-    // $('#secretToggle').attr('src', '/images/03_setting_select_O.png');
     $('#secretToggle').attr('class', 'input-toggle-img-public');
   }
   else {
-    // $('#secretToggle').attr('src', '/images/03_setting_select_X.png');
     $('#secretToggle').attr('class', 'input-toggle-img-secret');
   }
   
