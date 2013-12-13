@@ -178,9 +178,7 @@ block content
         var messages = JSON.parse(data);
         
         if(messages.length > 0) {
-          messages.forEach(function(message) {
-            renderMessage(message, 'prev');
-          });
+          renderMessages(messages, 'prev');
         }
         else {
           $('a.prev-messages').unbind('click');
@@ -189,6 +187,46 @@ block content
         
         pageLoader('off');
       });
+    }
+    
+    function renderMessages(messages, type) {
+      // not support worker
+      if ( !window.Worker ) {
+        messages.forEach(function(message) {
+          renderMessage(message, type);
+        });
+      }
+      
+      // support worker
+      else {
+        var worker = new Worker('/js/workers/renderMessageWorker.js');
+        worker.postMessage(JSON.stringify(messages));
+        
+        worker.onmessage = function(e) {
+          var list = JSON.parse(e.data);
+          
+          for(var i=0; i<list.length; i++) {
+            var msgView = document.createElement('li');
+            msgView.className = '#{user.name}' === messages[i].from ? 'message-box-mine' : 'message-box-others';
+            msgView.innerHTML = list[i];
+            msgView = $(msgView);
+            
+            if(type === 'normal') {
+              $('ul.message-list').prepend(msgView);
+              
+              var recordedAt = msgView.find('.message-container > .content > p.date').attr('value');
+              msgView.find('.message-container > .content > p.date').html( dateFormat(new Date(recordedAt), 'plain') );
+            }
+            else if(type === 'prev') { 
+              $('ul.message-list').append(msgView);
+              
+              var recordedAt = msgView.find('.message-container > .content > p.date').attr('value');
+              msgView.find('.message-container > .content > p.date').html( dateFormat(new Date(recordedAt), 'calculated') );
+            }
+          }
+          
+        }
+      }
     }
     
     function renderMessage(message, type) {
@@ -220,7 +258,6 @@ block content
     }
     
     function dateFormat(date, type) {
-      console.log(date);
       if( type === 'plain') {
         var formatted = date.getFullYear();
         formatted += '-' + (date.getMonth()+1);

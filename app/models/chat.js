@@ -33,7 +33,7 @@ ChatSchema.statics = {
 				if(err) throw new Error(err.message);
 				else {
 					if(messages) {
-						logger.debug(messages);
+						// logger.debug(messages);
 						callback(messages);
 					}
 				}

@@ -109,7 +109,45 @@ script.
     else {
       pageLoader('on');
       
-      $('#image-form').submit();
+      var supportFlag = !window.Worker || !window.FileReader;
+        
+      // not support worker
+      if( supportFlag ) {
+        alert('not supported!');
+        $('#image-form').submit();
+      }
+      
+      // support worker
+      else {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          // var image = new Image();
+          // image.src = reader.result;
+          
+          // var canvas = document.createElement('canvas');
+          // canvas.width = image.width;
+          // canvas.height = image.height;
+          
+          // var context = canvas.getContext('2d');
+          // context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          
+          // var dataURL = canvas.toDataURL();
+          
+          console.log(reader.result);
+          
+          var worker = new Worker('/js/workers/uploadImageWorker.js');
+          worker.postMessage(reader.result);
+          worker.onmessage = function(e) {
+            var imageUrl = JSON.parse(e.data);
+            
+            pageLoader('off');
+            sendImage(imageUrl);
+          }
+          
+        }
+        
+        reader.readAsBinaryString(file);
+      }
     }
   });
   

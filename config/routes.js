@@ -51,9 +51,11 @@ module.exports = function(app) {
 	
 	// 메세지 렌더링.
 	app.post('/message', messages.message);
+	app.post('/messageForWorker', messages.messageForWorker);
 	
 	// 이미지 업로드 처리.
 	app.post('/imager/upload', imager.upload);
+	app.post('/imager/uploadForWorker', imager.uploadForWorker);
 
 	// 파라미터 처리.
 	app.param('id', rooms.load);
