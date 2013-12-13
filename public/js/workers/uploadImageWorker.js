@@ -9,23 +9,35 @@ function request(dataURL) {
   
   var url = '/imager/uploadForWorker';
   var xhr = new XMLHttpRequest();
-  xhr.open('POST', url, false);
   
   xhr.onreadystatechange = function() {
-    if( xhr.status === 200 ) {
-      var result = JSON.parse(xhr.responseText);
+    switch( xhr.readyState ) {
+      case 1:
+        xhr.setRequestHeader("Content-type", "plain/text");
+        xhr.send(dataURL);
+        break;
       
-      if(result.success) {
-        var imageURL = result.imageUrl;
-        postMessage(JSON.stringify(imageURL));
-      }
-      
+      case 4:
+        var result = JSON.parse(xhr.responseText);
+        
+        if(result.success) {
+          var imageURL = result.imageUrl;
+          postMessage(imageURL);
+        }
+        else {          
+          postMesssage('failed');
+        }
+        break;
     }
   }
   
+  xhr.open('POST', url, true);
+  console.log('worker xhr open!');
+  
+  
+  
   // var uploadData = { image: dataURL };
   // xhr.send(JSON.stringify(uploadData));
-  
-  xhr.send(dataURL);
+
 
 }

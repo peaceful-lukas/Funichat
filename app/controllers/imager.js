@@ -101,13 +101,26 @@ function ucloudStorageUploadImage(image, callback) {
 
 
 exports.uploadForWorker = function(req, res) {
+  // var image = new Buffer(req.body, 'binary');
+  // logger.debug(image.length);
+  
+    
+  // ucloudStorageUploadImageForWorker(image, function(imageUrl) {
+  //   res.json(200, { success: true, imageUrl: imageUrl });
+  //   logger.debug('image file upload success!');
+  // });
+  
+  
   var data = '';
   req.on('data', function(chunk) {
+    console.log('chunk size: ' + chunk.length);
     data += chunk;
   });
   
   req.on('end', function() {
+    logger.debug(data.length);
     var image = new Buffer(data, 'binary');
+    logger.debug(image.length);
     
     ucloudStorageUploadImageForWorker(image, function(imageUrl) {
       res.json(200, { success: true, imageUrl: imageUrl });
@@ -121,7 +134,7 @@ exports.uploadForWorker = function(req, res) {
     //     logger.debug('image file upload success!');
     //   });
     // });
-  })
+  });
 }
 
 function ucloudStorageUploadImageForWorker(image, callback) {

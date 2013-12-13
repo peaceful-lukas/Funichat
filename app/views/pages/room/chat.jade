@@ -133,15 +133,19 @@ script.
           
           // var dataURL = canvas.toDataURL();
           
-          console.log(reader.result);
+          // console.log(reader.result);
           
           var worker = new Worker('/js/workers/uploadImageWorker.js');
           worker.postMessage(reader.result);
           worker.onmessage = function(e) {
-            var imageUrl = JSON.parse(e.data);
-            
-            pageLoader('off');
-            sendImage(imageUrl);
+            if(e.data === 'failed') {
+              alert('이미지 전송 실패');
+            }
+            else {
+              var imageUrl = e.data;
+              pageLoader('off');
+              sendImage(imageUrl);
+            }
           }
           
         }
