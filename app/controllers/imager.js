@@ -100,40 +100,29 @@ function ucloudStorageUploadImage(image, callback) {
 }
 
 
-exports.uploadForWorker = function(req, res) {
-  // var image = new Buffer(req.body, 'binary');
-  // logger.debug(image.length);
-  
-    
-  // ucloudStorageUploadImageForWorker(image, function(imageUrl) {
-  //   res.json(200, { success: true, imageUrl: imageUrl });
-  //   logger.debug('image file upload success!');
-  // });
-  
-  
+exports.uploadForWorker = function(req, res) {  
   var data = '';
+  
   req.on('data', function(chunk) {
     console.log('chunk size: ' + chunk.length);
     data += chunk;
   });
   
   req.on('end', function() {
-    logger.debug(data.length);
-    var image = new Buffer(data, 'binary');
-    logger.debug(image.length);
+    console.log(data.length);
+    console.log(req.headers);
+    data = data.split(',');
+    
+    var image = {};
+    var header = data[0];
+    image.type = header.split(':')[1].split(';')[0];
+    image.encoding = header.split(';')[1];
+    image.data = new Buffer(data[1], 'base64');
     
     ucloudStorageUploadImageForWorker(image, function(imageUrl) {
       res.json(200, { success: true, imageUrl: imageUrl });
       logger.debug('image file upload success!');
     });
-    
-    
-    // createImageFile(data, function(image) {
-    //   ucloudStorageUploadImage(image, function(imageUrl) {
-    //     res.json(200, { success: true, imageUrl: imageUrl });
-    //     logger.debug('image file upload success!');
-    //   });
-    // });
   });
 }
 
@@ -170,13 +159,13 @@ function ucloudStorageUploadImageForWorker(image, callback) {
         method: 'PUT',
         headers: {
           'X-Auth-Token': token,
-          'Content-Type': 'image/png',
-          'Content-Length': image.length
+          'Content-Type': image.type,
+          'Content-Length': image.data.length
         },
-        body: image
+        body: image.data
       };
       
-      var imageName = new Date().getTime() + '.png';
+      var imageName = new Date().getTime() + image.type.split('/')[1];
       
       var target = storageUrl + '/funichat/' + imageName;
       request(target, action, function(err, res) {
@@ -199,25 +188,4 @@ function ucloudStorageUploadImageForWorker(image, callback) {
       callback(imageCDN);
     }
   ]);
-}
-
-
-function createImageFile(imageData, callback) {
-  var data = imageData.replace(/^data:image\/png;base64,/, '');
-  
-  var image = {};
-  image.path = path.normalize(__dirname + '/../../public/tmp/image.png');
-  
-  // canvas 데이터 헤더에 이미지타입, 인코딩 방식 다 있음. 그거 파싱하자. 여기서는 깡무시.
-  var buf = new Buffer(data, 'base64');
-  fs.writeFile(image.path, buf, function(err) {
-    if(err) throw new Error(err.message);
-    else {
-      image.size = buf.length;
-      image.type = 'image/png';
-      image.name = 'image.png';
-      
-      callback(image);
-    }
-  });
 }

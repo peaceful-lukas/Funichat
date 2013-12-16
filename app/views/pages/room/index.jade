@@ -5,11 +5,15 @@ block content
   .layer#info
   .layer#participants
   
-  #page-loader
+  .loader#page-loader
     img
     p 로딩 중 ...<br>잠시만 기다려주세요<br><br>최신브라우저를 사용하면 최적화된<br>서비스를 이용하실 수 있습니다.
     //- p 크롬을 사용하시면 최적화된<br>서비스를 이용하실 수 있습니다.
-      
+  
+  .loader#image-loader
+    img
+    p 이미지 로딩중..
+    
   .layer#blurred
   include ../popup/roomDropAlert
   include ../popup/ownerAlert
@@ -422,6 +426,17 @@ block content
       else {
         $('#blurred').css('display', 'none');
         $('#page-loader').css('display', 'none');
+      }
+    }
+    
+    function imageLoader(toggle) {
+      if( toggle === 'on' ) {
+        $('#blurred').css('display', 'block');
+        $('#image-loader').css('display', 'inline-block');
+      }
+      else {
+        $('#blurred').css('display', 'none');
+        $('#image-loader').css('display', 'none');
       }
     }
   

@@ -71,7 +71,7 @@ script.
       }
       
       else {
-        alert('사진 이미지 url 전송에 실패했습니다.');
+        alert('이미지 전송에 실패했습니다.');
       }
     }
   }
@@ -81,7 +81,7 @@ script.
   var uploadFormDef = {
     url: '/imager/upload',
     success: function(data) {
-      pageLoader('off');
+      imageLoader('off');
       
       if(data.success) {
         sendImage(data.imageUrl);
@@ -107,13 +107,12 @@ script.
       alert('이미지 파일이 아닙니다.');
     }
     else {
-      pageLoader('on');
+      imageLoader('on');
       
       var supportFlag = !window.Worker || !window.FileReader;
         
       // not support worker
       if( supportFlag ) {
-        alert('not supported!');
         $('#image-form').submit();
       }
       
@@ -121,36 +120,22 @@ script.
       else {
         var reader = new FileReader();
         reader.onload = function(e) {
-          // var image = new Image();
-          // image.src = reader.result;
-          
-          // var canvas = document.createElement('canvas');
-          // canvas.width = image.width;
-          // canvas.height = image.height;
-          
-          // var context = canvas.getContext('2d');
-          // context.drawImage(image, 0, 0, canvas.width, canvas.height);
-          
-          // var dataURL = canvas.toDataURL();
-          
-          // console.log(reader.result);
           
           var worker = new Worker('/js/workers/uploadImageWorker.js');
           worker.postMessage(reader.result);
           worker.onmessage = function(e) {
             if(e.data === 'failed') {
-              alert('이미지 전송 실패');
+              alert('이미지 전송에 실패했습니다.');
             }
             else {
               var imageUrl = e.data;
-              pageLoader('off');
+              imageLoader('off');
               sendImage(imageUrl);
             }
           }
-          
         }
         
-        reader.readAsBinaryString(file);
+        reader.readAsDataURL(file);
       }
     }
   });

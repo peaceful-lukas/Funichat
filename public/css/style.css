@@ -1063,7 +1063,7 @@ ul.participants-list li img.user-img {
 /* Page Loader */
 /***************/
 
-#page-loader {
+.loader {
 	display: inline-block;
 	position: fixed;
 	max-width: 130px;
@@ -1074,12 +1074,12 @@ ul.participants-list li img.user-img {
 	z-index: 11;
 }
 
-#page-loader img {
+.loader img {
 	position: relative;
 	content: url(../images/chat-loader.gif); /* @REF : [ theme.pageLoader.imgUrl ] */
 }
 
-#page-loader p {
+.loader p {
 	position: relative;
 	top: 10px;
 	left: -85px;
@@ -1089,6 +1089,9 @@ ul.participants-list li img.user-img {
 	width: 200px;
 }
 
+#image-loader {
+	display: none;
+}
 
 /*****************/
 /* Image Zoom In */
