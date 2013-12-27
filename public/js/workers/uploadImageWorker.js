@@ -13,7 +13,6 @@ function request(dataURL) {
   xhr.onreadystatechange = function() {
     switch( xhr.readyState ) {
       case 1:
-        console.log(dataURL.length);
         xhr.setRequestHeader("Content-type", "plain/text");
         xhr.send(dataURL);
         break;

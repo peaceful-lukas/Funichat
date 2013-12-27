@@ -120,9 +120,15 @@ script.
       else {
         var reader = new FileReader();
         reader.onload = function(e) {
+          var imageDataURL = reader.result;
+          if( imageDataURL.length > 1024 * 1024 * 4 ) {
+            alert('용량이 너무 커서 전송할 수 없습니다.');
+            imageLoader('off');
+            return;
+          }
           
           var worker = new Worker('/js/workers/uploadImageWorker.js');
-          worker.postMessage(reader.result);
+          worker.postMessage(imageDataURL);
           worker.onmessage = function(e) {
             if(e.data === 'failed') {
               alert('이미지 전송에 실패했습니다.');

@@ -60,8 +60,8 @@ module.exports = {
         var now = new Date().getTime();
         var timestamp = new Date(req.query.timestamp).getTime();
         
-        // 현재시각으로부터 10초이내의 요청만 받아들인다.
-        if( now - timestamp > -10 * 1000 && now - timestamp < 10 * 1000 ) {
+        // 현재시각으로부터 30초이내의 요청만 받아들인다.
+        if( now - timestamp > -30 * 1000 && now - timestamp < 30 * 1000 ) {
           cb(null);
         }
         else {

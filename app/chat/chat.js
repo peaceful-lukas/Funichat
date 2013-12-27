@@ -56,7 +56,7 @@ module.exports = function (server, config) {
 		////////////////////////////////////////////////////////////////////////////////////////
 		// 방 정보 수정 브로드캐스트 처리
 		////////////////////////////////////////////////////////////////////////////////////////
-		rabbitMQ.exchange('exchange-update', { type: 'fanout', autoDelete: true }, function(_exchange) {
+		rabbitMQ.exchange('exchange-update', { type: 'fanout', autoDelete: false }, function(_exchange) {
 			updateExchange = _exchange;
 		});
 

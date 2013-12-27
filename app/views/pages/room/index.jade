@@ -7,7 +7,7 @@ block content
   
   .loader#page-loader
     img
-    p 로딩 중 ...<br>잠시만 기다려주세요<br><br>최신브라우저를 사용하면 최적화된<br>서비스를 이용하실 수 있습니다.
+    p 로딩 중 ...<br>잠시만 기다려주세요<br><br>최신브라우저를 사용하면<br> 최적화된 서비스를<br>이용하실 수 있습니다.
     //- p 크롬을 사용하시면 최적화된<br>서비스를 이용하실 수 있습니다.
   
   .loader#image-loader
@@ -187,9 +187,8 @@ block content
         else {
           $('a.prev-messages').unbind('click');
           $('a.prev-messages').css('opacity', 0.3);
+          pageLoader('off');
         }
-        
-        pageLoader('off');
       });
     }
     
@@ -199,6 +198,8 @@ block content
         messages.forEach(function(message) {
           renderMessage(message, type);
         });
+        
+        pageLoader('off');
       }
       
       // support worker
@@ -229,6 +230,7 @@ block content
             }
           }
           
+          pageLoader('off');
         }
       }
     }
@@ -331,7 +333,7 @@ block content
         $('#participants > ul.participants-list').append(participantCell.html());
       }
       else if( entrance.type === 'exit' ) {
-        var sel = '#participants > ul.participants-list li.' + entrance.name;
+        var sel = '#participants > ul.participants-list li.' + entrance.name + ':eq(0)';
         $(sel).next().remove(); // end-line
         $(sel).remove(); // cell
       }
