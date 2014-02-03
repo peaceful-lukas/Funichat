@@ -11,23 +11,23 @@ html
         block content
       
       // 광고 배너
-      - if( page !== 'room' ) {
-        #ads-bar
-          a.ad-link
-            img(src='#{ad.imagePath}')
+      // - if( page !== 'room' ) {
+      //   #ads-bar
+      //     a.ad-link
+      //       img(src='#{ad.imagePath}')
            
-        script.
-          $('.ad-link').click(function() {
-            var data = {
-              aid: '#{ad._id}',
-              link: '#{ad.link}'
-            };
+      //   script.
+      //     $('.ad-link').click(function() {
+      //       var data = {
+      //         aid: '#{ad._id}',
+      //         link: '#{ad.link}'
+      //       };
             
-            $.post('/clickAd', data, function(data) {
-              window.open(data.link, '_self');
-            });
-          });
-      - }
+      //       $.post('/clickAd', data, function(data) {
+      //         window.open(data.link, '_self');
+      //       });
+      //     });
+      // - }
         
     include ../includes/foot
 
